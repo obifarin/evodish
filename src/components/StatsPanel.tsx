@@ -32,11 +32,6 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ susceptible, resistant, side })
           </div>
         </div>
 
-        {/* Bottom label */}
-        <div className="flex flex-col gap-0.5 opacity-50 mt-2">
-          <div className="text-[9px]">INCUBATOR 07</div>
-          <div className="font-bold tracking-widest text-[10px]">SPECIMEN ALPHA</div>
-        </div>
       </div>
     );
   }
@@ -50,7 +45,6 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ susceptible, resistant, side })
           <span className="opacity-60">FRAME:</span>
           <span className="tabular-nums">{Math.floor(Date.now() / 100) % 100000}</span>
         </div>
-        <div className="opacity-40">[ EVOLUTIONARY_PROTOCOL ]</div>
       </div>
 
       {/* Resistant Count */}
@@ -61,11 +55,6 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ susceptible, resistant, side })
         </div>
       </div>
 
-      {/* Bottom label */}
-      <div className="flex flex-col gap-0.5 opacity-50 mt-2 items-end">
-        <div className="font-bold tracking-widest">BIOSAFETY_L4</div>
-        <div className="text-[9px]">EST. SATURATION: {((susceptible + resistant) / 20).toFixed(0)}%</div>
-      </div>
     </div>
   );
 };

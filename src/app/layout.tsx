@@ -15,7 +15,7 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EvoDish // Biosafety Level 4",
+  title: "EvoDish // Antibiotic Resistance",
   description: "Bacterial Evolution & Terraform Protocol Simulation",
 };
 

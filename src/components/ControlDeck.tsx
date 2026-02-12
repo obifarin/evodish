@@ -28,7 +28,7 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
   movementSpeed,
   setMovementSpeed,
 }) => {
-  const [description, setDescription] = useState<string>("BIOSAFETY LEVEL 4 // INITIALIZED");
+  const [description, setDescription] = useState<string>("INITIALIZED");
 
   const controls = [
     {
@@ -91,10 +91,6 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
           <Info size={12} strokeWidth={3} />
           <span className="truncate max-w-[250px] sm:max-w-none">{description}</span>
         </div>
-        <div className="hidden sm:flex items-center gap-4">
-          <span>PROTOCOL: ACTIVE</span>
-          <span>SPECIMEN: 001</span>
-        </div>
       </div>
 
       {/* Controls Grid — responsive: 2-col on mobile, full row on desktop */}
@@ -104,7 +100,7 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
             key={ctrl.label}
             className="flex flex-col gap-2 min-w-0"
             onMouseEnter={() => setDescription(ctrl.desc)}
-            onMouseLeave={() => setDescription("BIOSAFETY LEVEL 4 // INITIALIZED")}
+            onMouseLeave={() => setDescription("INITIALIZED")}
           >
             <div className="flex justify-between items-baseline border-b border-black/10 pb-1">
               <label className="font-mono text-[10px] font-bold tracking-tighter text-black uppercase truncate">
