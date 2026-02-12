@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Syne, Space_Mono } from "next/font/google";
+import { Fraunces, Space_Mono } from "next/font/google";
 import "./globals.css";
 
-const syne = Syne({
-  variable: "--font-syne",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
-  weight: ["400", "800"],
+  weight: ["400", "700", "900"],
 });
 
 const spaceMono = Space_Mono({
@@ -15,8 +15,8 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EvoDish - Antibiotic Resistance Simulator",
-  description: "Interactive simulation of bacterial evolution.",
+  title: "EvoDish // Biosafety Level 4",
+  description: "Bacterial Evolution & Terraform Protocol Simulation",
 };
 
 export default function RootLayout({
@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${syne.variable} ${spaceMono.variable} antialiased`}
+        className={`${fraunces.variable} ${spaceMono.variable} antialiased`}
       >
         {children}
       </body>

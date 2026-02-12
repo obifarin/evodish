@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Info } from "lucide-react";
+import { Info, RotateCcw } from "lucide-react";
 
 interface ControlDeckProps {
   onReset: () => void;
@@ -28,7 +28,7 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
   movementSpeed,
   setMovementSpeed,
 }) => {
-  const [description, setDescription] = useState<string>("HOVER OVER A PARAMETER TO SEE DETAILS //");
+  const [description, setDescription] = useState<string>("BIOSAFETY LEVEL 4 // INITIALIZED");
 
   const controls = [
     {
@@ -38,7 +38,7 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
       min: 0,
       max: 0.2,
       step: 0.01,
-      display: (v: number) => `${(v * 100).toFixed(1)}%`,
+      display: (v: number) => `${(v * 100).toFixed(0)}%`,
       desc: "GENOME STABILITY: Probability of a bacterium developing resistance during division."
     },
     {
@@ -62,14 +62,14 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
       desc: "CARRYING CAPACITY: Max population the dish can support. Simulates space/resources."
     },
     {
-      label: "DRUG STRENGTH",
+      label: "DRUG STR.",
       value: discRadius,
       setValue: setDiscRadius,
       min: 20,
       max: 150,
       step: 5,
-      display: (v: number) => `${v}px`,
-      desc: "DOSAGE: The radius of the 'Kill Zone' for antibiotic discs."
+      display: (v: number) => `${v}PX`,
+      desc: "ANTIBIOTIC DOSAGE: The radius of the 'Kill Zone' for antibiotic discs."
     },
     {
       label: "TEMP",
@@ -78,55 +78,64 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
       min: 0.1,
       max: 4.0,
       step: 0.1,
-      display: (v: number) => `${v.toFixed(1)}x`,
+      display: (v: number) => `${v.toFixed(1)}X`,
       desc: "KINETIC ENERGY: Speed of bacterial movement. Affects mixing and spreading."
     },
   ];
 
   return (
-    <div className="z-10 w-full max-w-4xl bg-white/80 backdrop-blur-md border-2 border-[var(--ink-primary)] rounded-[var(--radius-lg)] p-4 shadow-lg flex flex-col gap-4">
-      {/* Top Row: Reset & Active Description */}
-      <div className="flex justify-between items-center border-b border-[var(--ink-secondary)] pb-2 mb-2">
-        <button 
-          onClick={onReset}
-          className="font-mono text-sm font-bold text-[var(--alert-red)] hover:bg-[var(--alert-red)] hover:text-white px-3 py-1 rounded transition-colors"
-        >
-          [ RESET SAMPLE ]
-        </button>
-        <div className="font-mono text-xs text-[var(--ink-secondary)] flex items-center gap-2">
-           <Info size={14} />
-           <span>{description}</span>
+    <div className="z-10 w-full max-w-6xl bg-transparent pt-3 flex flex-col gap-4">
+      {/* Description / Status Bar */}
+      <div className="flex justify-between items-center font-mono text-[9px] uppercase tracking-wider text-[var(--ink-black)] opacity-60">
+        <div className="flex items-center gap-2">
+          <Info size={12} strokeWidth={3} />
+          <span className="truncate max-w-[250px] sm:max-w-none">{description}</span>
+        </div>
+        <div className="hidden sm:flex items-center gap-4">
+          <span>PROTOCOL: ACTIVE</span>
+          <span>SPECIMEN: 001</span>
         </div>
       </div>
 
-      {/* Controls Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+      {/* Controls Grid — responsive: 2-col on mobile, full row on desktop */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-x-6 gap-y-4 items-end">
         {controls.map((ctrl) => (
-          <div 
-            key={ctrl.label} 
-            className="flex flex-col gap-1 group"
+          <div
+            key={ctrl.label}
+            className="flex flex-col gap-2 min-w-0"
             onMouseEnter={() => setDescription(ctrl.desc)}
-            onMouseLeave={() => setDescription("HOVER OVER A PARAMETER TO SEE DETAILS //")}
+            onMouseLeave={() => setDescription("BIOSAFETY LEVEL 4 // INITIALIZED")}
           >
-            <div className="flex justify-between items-end">
-                <label className="font-mono text-xs font-bold tracking-wider text-[var(--ink-primary)]">
-                    {ctrl.label}
-                </label>
-                <span className="font-mono text-xs text-[var(--sterile-blue)]">
-                    {ctrl.display(ctrl.value)}
-                </span>
+            <div className="flex justify-between items-baseline border-b border-black/10 pb-1">
+              <label className="font-mono text-[10px] font-bold tracking-tighter text-black uppercase truncate">
+                {ctrl.label}
+              </label>
+              <span className="font-mono text-[10px] font-bold text-black/40 ml-1 shrink-0">
+                {ctrl.display(ctrl.value)}
+              </span>
             </div>
-            <input 
-                type="range" 
-                min={ctrl.min} 
-                max={ctrl.max} 
-                step={ctrl.step} 
-                value={ctrl.value}
-                onChange={(e) => ctrl.setValue(parseFloat(e.target.value))}
-                className="w-full h-1 bg-[var(--ink-secondary)] rounded-lg appearance-none cursor-pointer accent-[var(--ink-primary)] hover:accent-[var(--sterile-blue)] transition-all"
+            <input
+              type="range"
+              min={ctrl.min}
+              max={ctrl.max}
+              step={ctrl.step}
+              value={ctrl.value}
+              onChange={(e) => ctrl.setValue(parseFloat(e.target.value))}
+              className="w-full h-px bg-black appearance-none cursor-pointer accent-black hover:h-1 transition-all"
             />
           </div>
         ))}
+
+        {/* Reset Button */}
+        <div className="flex flex-col justify-center items-center sm:items-end col-span-2 sm:col-span-1">
+          <button
+            onClick={onReset}
+            className="group flex flex-col items-center gap-1 font-mono text-[9px] font-bold uppercase hover:text-[var(--accent-rust)] transition-colors"
+          >
+            <RotateCcw size={16} className="group-hover:rotate-[-45deg] transition-transform" />
+            <span>RESET</span>
+          </button>
+        </div>
       </div>
     </div>
   );
