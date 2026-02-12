@@ -3,10 +3,18 @@
 import React, { useState, useCallback } from "react";
 import PetriDish from "@/components/PetriDish";
 import StatsPanel from "@/components/StatsPanel";
+import ControlDeck from "@/components/ControlDeck";
 
 export default function Home() {
   const [resetSignal, setResetSignal] = useState(0);
   const [stats, setStats] = useState({ susceptible: 0, resistant: 0 });
+  
+  // Simulation Parameters
+  const [mutationRate, setMutationRate] = useState(0.05);
+  const [reproductionChance, setReproductionChance] = useState(0.005);
+  const [maxPopulation, setMaxPopulation] = useState(1000);
+  const [discRadius, setDiscRadius] = useState(60);
+  const [movementSpeed, setMovementSpeed] = useState(1.0);
 
   const handleReset = () => {
     setResetSignal((prev) => prev + 1);
@@ -34,21 +42,31 @@ export default function Home() {
 
       {/* Main Canvas Container */}
       <div className="relative flex-grow flex items-center justify-center">
-        <PetriDish resetSignal={resetSignal} onStatsUpdate={onStatsUpdate} />
+        <PetriDish 
+            resetSignal={resetSignal} 
+            mutationRate={mutationRate}
+            reproductionChance={reproductionChance}
+            maxPopulation={maxPopulation}
+            discRadius={discRadius}
+            movementSpeed={movementSpeed}
+            onStatsUpdate={onStatsUpdate} 
+        />
       </div>
 
-      {/* Control Deck Placeholder */}
-      <div className="z-10 w-full max-w-2xl bg-white/50 backdrop-blur-md border-2 border-[var(--ink-primary)] rounded-[var(--radius-lg)] p-4 flex justify-between items-center shadow-lg">
-        <button 
-          onClick={handleReset}
-          className="font-mono text-sm underline hover:text-[var(--sterile-blue)]"
-        >
-          RESET SAMPLE
-        </button>
-        <div className="font-mono text-xs opacity-50">
-          CONTROLS_V1.0 INITIALIZING...
-        </div>
-      </div>
+      {/* Control Deck */}
+      <ControlDeck 
+        onReset={handleReset} 
+        mutationRate={mutationRate}
+        setMutationRate={setMutationRate}
+        reproductionChance={reproductionChance}
+        setReproductionChance={setReproductionChance}
+        maxPopulation={maxPopulation}
+        setMaxPopulation={setMaxPopulation}
+        discRadius={discRadius}
+        setDiscRadius={setDiscRadius}
+        movementSpeed={movementSpeed}
+        setMovementSpeed={setMovementSpeed}
+      />
     </main>
   );
 }

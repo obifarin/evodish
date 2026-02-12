@@ -11,22 +11,56 @@ const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
 interface PetriDishProps {
   resetSignal: number;
   onStatsUpdate: (susceptible: number, resistant: number) => void;
+  // Simulation Params
+  mutationRate: number;
+  reproductionChance: number;
+  maxPopulation: number;
+  discRadius: number;
+  movementSpeed: number;
 }
 
-const PetriDish: React.FC<PetriDishProps> = ({ resetSignal, onStatsUpdate }) => {
+const PetriDish: React.FC<PetriDishProps> = ({ 
+  resetSignal, 
+  onStatsUpdate,
+  mutationRate,
+  reproductionChance,
+  maxPopulation,
+  discRadius,
+  movementSpeed
+}) => {
   const p5Ref = useRef<any>(null);
   const bacteriaRef = useRef<Bacterium[]>([]);
   const discsRef = useRef<AntibioticDisc[]>([]);
+  const agarTextureRef = useRef<any>(null);
+  
+  // Refs for params to avoid closure staleness in p5 loop
+  const paramsRef = useRef({
+    mutationRate,
+    reproductionChance,
+    maxPopulation,
+    discRadius,
+    movementSpeed
+  });
+
+  // Keep refs updated
+  useEffect(() => {
+    paramsRef.current = {
+      mutationRate,
+      reproductionChance,
+      maxPopulation,
+      discRadius,
+      movementSpeed
+    };
+  }, [mutationRate, reproductionChance, maxPopulation, discRadius, movementSpeed]);
 
   const initSimulation = (p5: any) => {
     discsRef.current = [];
     const population: Bacterium[] = [];
     for (let i = 0; i < 50; i++) {
-      // Random position inside circle (radius 250)
       let pos;
       do {
         pos = p5.createVector(p5.random(-240, 240), p5.random(-240, 240));
-      } while (pos.mag() > 240); 
+      } while (pos.magSq() > 240 * 240); 
 
       population.push({
         pos: pos,
@@ -48,6 +82,23 @@ const PetriDish: React.FC<PetriDishProps> = ({ resetSignal, onStatsUpdate }) => 
 
   const setup = (p5: any, canvasParentRef: Element) => {
     p5.createCanvas(800, 600).parent(canvasParentRef);
+    
+    // Create static noise texture
+    const gfx = p5.createGraphics(500, 500);
+    gfx.translate(250, 250);
+    gfx.background("#E6E6E6"); // --bg-agar
+    gfx.noStroke();
+    gfx.fill(0, 0, 0, 15); 
+    
+    for(let i = 0; i < 12000; i++) {
+        const r = 250 * Math.sqrt(Math.random());
+        const theta = Math.random() * 2 * Math.PI;
+        const x = r * Math.cos(theta);
+        const y = r * Math.sin(theta);
+        gfx.circle(x, y, 1.5);
+    }
+    agarTextureRef.current = gfx;
+
     p5Ref.current = p5;
     initSimulation(p5);
   };
@@ -57,33 +108,41 @@ const PetriDish: React.FC<PetriDishProps> = ({ resetSignal, onStatsUpdate }) => 
     const my = p5.mouseY - p5.height / 2;
     
     // Check if inside dish
-    if (p5.dist(0, 0, mx, my) < 250) {
+    if (mx*mx + my*my < 62500) {
         discsRef.current.push({
             pos: p5.createVector(mx, my),
-            radius: 60
+            radius: paramsRef.current.discRadius // Use dynamic radius
         });
     }
   };
 
   const draw = (p5: any) => {
     // Background
-    p5.background("#F0F2F5"); // --bg-lab
+    p5.background("#F0F2F5");
     
     // Draw the dish
     p5.push();
     p5.translate(p5.width / 2, p5.height / 2);
     
-    // Dish body
-    p5.fill("#E6E6E6"); // --bg-agar
-    p5.stroke("#1A1A1A"); // --ink-primary
-    p5.strokeWeight(4); // --border-thick
-    p5.circle(0, 0, 500); // 500px diameter
+    if (agarTextureRef.current) {
+        p5.imageMode(p5.CENTER);
+        p5.image(agarTextureRef.current, 0, 0);
+    } else {
+        p5.fill("#E6E6E6");
+        p5.circle(0, 0, 500);
+    }
+    
+    // Border
+    p5.noFill();
+    p5.stroke("#1A1A1A");
+    p5.strokeWeight(4);
+    p5.circle(0, 0, 500);
     
     // Draw Antibiotic Discs
     const discs = discsRef.current;
     for (let disc of discs) {
         p5.fill(255, 255, 255, 100);
-        p5.stroke(255, 50, 50, 200); // Reddish outline
+        p5.stroke(255, 50, 50, 200); 
         p5.strokeWeight(2);
         p5.circle(disc.pos.x, disc.pos.y, disc.radius * 2);
     }
@@ -92,16 +151,24 @@ const PetriDish: React.FC<PetriDishProps> = ({ resetSignal, onStatsUpdate }) => 
     const bacteria = bacteriaRef.current;
     const survivors: Bacterium[] = [];
     const newBacteria: Bacterium[] = [];
-    const MAX_POPULATION = 400;
-    const MUTATION_RATE = 0.05;
     
+    // Access params from ref
+    const { 
+        mutationRate, 
+        reproductionChance, 
+        maxPopulation, 
+        movementSpeed 
+    } = paramsRef.current;
+
     for (let b of bacteria) {
       let isDead = false;
 
       // Kill Logic
       if (!b.isResistant) {
           for (let disc of discs) {
-              if (b.pos.dist(disc.pos) < disc.radius) {
+             const dx = b.pos.x - disc.pos.x;
+             const dy = b.pos.y - disc.pos.y;
+             if (dx*dx + dy*dy < disc.radius * disc.radius) {
                   b.health -= 5;
               }
           }
@@ -109,22 +176,23 @@ const PetriDish: React.FC<PetriDishProps> = ({ resetSignal, onStatsUpdate }) => 
       }
 
       if (!isDead) {
-          // Brownian motion
-          b.vel = p5.createVector(p5.random(-1, 1), p5.random(-1, 1));
+          // Brownian motion (Scaled by movementSpeed)
+          const vx = p5.random(-1, 1) * movementSpeed;
+          const vy = p5.random(-1, 1) * movementSpeed;
+          b.vel = p5.createVector(vx, vy);
           b.pos.add(b.vel);
 
-          // Boundary check
-          const distFromCenter = b.pos.mag();
-          if (distFromCenter > 240) {
+          // Boundary check (Squared)
+          if (b.pos.magSq() > 57600) { // 240^2
             b.pos.setMag(240);
           }
           
           b.age++;
 
-          // Reproduction
-          if (bacteria.length + newBacteria.length < MAX_POPULATION && p5.random(1) < 0.005) {
+          // Reproduction logic using dynamic params
+          if (bacteria.length + newBacteria.length < maxPopulation && p5.random(1) < reproductionChance) {
              let offspringResistant = b.isResistant; 
-             if (!b.isResistant && p5.random(1) < MUTATION_RATE) {
+             if (!b.isResistant && p5.random(1) < mutationRate) {
                  offspringResistant = true;
              }
              newBacteria.push({
@@ -138,15 +206,15 @@ const PetriDish: React.FC<PetriDishProps> = ({ resetSignal, onStatsUpdate }) => 
 
           // Render
           if (b.isResistant) {
-            p5.fill(255, 50, 50); // Red
+            p5.fill(255, 50, 50);
             p5.noStroke();
+            p5.circle(b.pos.x, b.pos.y, 8);
           } else {
             p5.noFill();
-            p5.stroke(0, 200, 100); // Green stroke
+            p5.stroke(0, 200, 100);
             p5.strokeWeight(2);
+            p5.circle(b.pos.x, b.pos.y, 8);
           }
-          
-          p5.circle(b.pos.x, b.pos.y, 8);
           
           survivors.push(b);
       }

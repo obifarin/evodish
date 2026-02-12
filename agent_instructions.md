@@ -15,71 +15,57 @@ The application must be performant, visually engaging, and code-structurally cle
 
 ## Core Scientific Concepts (The "Game Rules")
 1.  **The Agents (Bacteria):** Individual particles with properties: `position`, `health`, `age`, `isResistant` (boolean).
-2.  **Reproduction:** Asexual division based on a timer.
-3.  **Mutation:** A small probability (e.g., 1%) during division that a "Susceptible" bacterium spawns a "Resistant" offspring.
+2.  **Reproduction:** Asexual division based on a timer (approx. every 200 frames).
+3.  **Mutation:** A variable probability (controlled via UI) during division that a "Susceptible" bacterium spawns a "Resistant" offspring.
 4.  **Selection Pressure:** The user can drop "Antibiotic Discs" onto the canvas.
     - **Susceptible bacteria** inside the disc's radius die rapidly.
     - **Resistant bacteria** are immune to the disc's effect.
 
 ---
 
-## Implementation Phases
+## Completed Implementation Details
 
-### Phase 1: The "Sterile Lab" (Setup & Boilerplate)
-**Goal:** Initialize the Next.js project and render a blank Petri dish canvas.
-1.  Initialize a standard Next.js App Router project.
-2.  Install `react-p5`.
-3.  Create a component `PetriDish.tsx`.
-4.  **Visuals:**
-    - Draw a large, light-gray circle in the center of the canvas to represent the agar plate.
-    - Add a "Reset Dish" button in the UI overlay.
+### 1. The "Petri Dish" (Canvas & Visuals)
+- **Component:** `PetriDish.tsx`
+- **Visuals:** 
+    - A large, circular agar plate with a generated **static noise texture** for organic feel (using `p5.Graphics`).
+    - Surrounded by a thick "lab-grade" border.
+    - Rendered using `react-p5` with `next/dynamic` import to handle SSR.
 
-### Phase 2: Life (The Bacterial Agent System)
-**Goal:** Populate the dish with moving, living "Wild Type" bacteria.
-1.  Create a TypeScript interface `Bacterium`:
-    ```typescript
-    interface Bacterium {
-      pos: P5.Vector;
-      vel: P5.Vector; // Random walk movement
-      health: number; // 0-100
-      isResistant: boolean; // false for now
-      age: number;
-    }
-    ```
-2.  **Simulation Loop (in p5 `draw` function):**
-    - Initialize an array of 50 `Bacterium` objects.
-    - **Movement:** Apply slight Brownian motion (random wiggling) to each agent. Constrain them to stay *inside* the petri dish circle.
-    - **Rendering:** Draw small green circles (r=4px) for susceptible bacteria.
+### 2. The Bacterial Agent System
+- **Interface:** `Bacterium` (`pos`, `vel`, `health`, `isResistant`, `age`).
+- **Population Limit:** `MAX_POPULATION` set to **1000**.
+- **Movement:** Brownian motion (random walk). Constrained inside the dish radius using squared distance checks (`magSq()`) for performance.
+- **Rendering:**
+    - **Susceptible:** Green stroke, hollow circles.
+    - **Resistant:** Red fill, solid circles.
 
-### Phase 3: Evolution (Reproduction & Mutation Logic)
-**Goal:** Implement the biological drivers of population growth and genetic variation.
-1.  **Reproduction:**
-    - Add a global constant `MAX_POPULATION` (e.g., 400) to prevent performance crashes.
-    - Every 100-200 frames, if `population < MAX_POPULATION`, a bacterium should "divide."
-    - Division creates a new bacterium at the same location.
-2.  **Mutation:**
-    - During division, use `Math.random()` to determine mutation.
-    - Set `MUTATION_RATE = 0.05` (5% chance).
-    - If mutation occurs, the new bacterium has `isResistant = true`.
-    - **Visual Differentiation:** Render Resistant bacteria as **RED** circles (or a distinct color/shape) so they stand out against the green Wild Type.
+### 3. Evolution Logic
+- **Reproduction:** Occurs randomly (~0.5% chance per frame) if population is under limit.
+- **Mutation:** 
+    - Controlled dynamically via a prop `mutationRate` (default 0.05).
+    - If a non-resistant bacterium divides, it has a `mutationRate` chance to spawn a resistant offspring.
+    - Resistant bacteria always spawn resistant offspring.
 
-### Phase 4: The Challenge (Antibiotic Discs)
-**Goal:** Allow user interaction to introduce selective pressure.
-1.  **Interaction:** On mouse click, spawn an `AntibioticDisc` object at the cursor location.
-2.  **Disc Properties:** `position`, `radius` (zone of inhibition).
-3.  **Kill Logic (The Critical Step):**
-    - In every frame, calculate the distance between every bacterium and every disc.
-    - IF `distance < disc.radius` AND `bacterium.isResistant === false`:
-        - `bacterium.health -= 5;`
-    - IF `bacterium.health <= 0`:
-        - Remove from array (death).
-4.  **Visuals:** Draw the discs as semi-transparent white circles with a red outline to indicate the "danger zone" for non-resistant strains.
+### 4. Antibiotic Discs (Interaction)
+- **Action:** Clicking on the dish spawns an `AntibioticDisc`.
+- **Properties:** Position is mouse coordinates; radius is fixed (60px).
+- **Kill Logic:**
+    - Checks distance between every susceptible bacterium and every disc.
+    - Uses squared distance optimization.
+    - If inside radius, health decreases rapidly.
+    - Bacteria removed from array upon death.
 
-### Phase 5: Data Visualization (The Scientist's Dashboard)
-**Goal:** Display real-time stats to prove the concept.
-1.  Create a `StatsPanel.tsx` component overlaying the canvas.
-2.  Display real-time counters:
-    - **Susceptible Population** (Green text)
-    - **Resistant Population** (Red text)
-    - **Total Population**
-3.  Observe the "Takeover": Users should see the Green number plummet when a disc is dropped, followed by the Red number rising as the resistant strain fills the empty space.
+### 5. UI & Controls
+- **StatsPanel:** `StatsPanel.tsx` displays real-time "Susceptible" vs "Resistant" population counts.
+    - Updated every 10 frames via `onStatsUpdate` callback to reduce React render thrashing.
+- **ControlDeck:** `ControlDeck.tsx` provides:
+    - **Reset Sample:** Clears and re-seeds the simulation.
+    - **Mutation Rate:** Slider input (0% - 20%) to adjust evolutionary pressure in real-time.
+
+---
+
+## Future Roadmap (Potential Extensions)
+1.  **Aging:** Bacteria die naturally after a certain age.
+2.  **Resource Competition:** Bacteria need food (dots) to survive/reproduce.
+3.  **Graphs:** Line chart showing population history over time.
