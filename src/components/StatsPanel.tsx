@@ -9,7 +9,7 @@ interface StatsPanelProps {
 const StatsPanel: React.FC<StatsPanelProps> = ({ susceptible, resistant, side }) => {
   if (side === "left") {
     return (
-      <div className="flex flex-col justify-center items-start gap-4 w-28 sm:w-36 md:w-48 shrink-0 px-2 font-mono text-[10px] uppercase">
+      <div className="flex flex-col items-start gap-2 font-mono text-[10px] uppercase">
         {/* Metadata */}
         <div className="flex flex-col gap-1 opacity-60">
           <div className="flex gap-2">
@@ -22,6 +22,10 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ susceptible, resistant, side })
               {resistant > 50 ? "MUTATING" : "UNIFORM"}
             </span>
           </div>
+          <div className="flex gap-2">
+            <span className="opacity-60">FRAME:</span>
+            <span className="tabular-nums">{Math.floor(Date.now() / 100) % 100000}</span>
+          </div>
         </div>
 
         {/* Susceptible Count */}
@@ -31,30 +35,20 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ susceptible, resistant, side })
             {susceptible.toString().padStart(3, '0')}
           </div>
         </div>
-
       </div>
     );
   }
 
-  // Right side
+  // Right side — resistant count
   return (
-    <div className="flex flex-col justify-center items-end gap-4 w-28 sm:w-36 md:w-48 shrink-0 px-2 font-mono text-[10px] uppercase text-right overflow-hidden">
-      {/* Metadata */}
-      <div className="flex flex-col gap-1 opacity-60">
-        <div className="flex gap-2 justify-end">
-          <span className="opacity-60">FRAME:</span>
-          <span className="tabular-nums">{Math.floor(Date.now() / 100) % 100000}</span>
-        </div>
-      </div>
-
+    <div className="flex flex-col items-start gap-2 font-mono text-[10px] uppercase">
       {/* Resistant Count */}
-      <div className="flex flex-col items-end">
+      <div className="flex flex-col">
         <h2 className="text-[9px] font-bold opacity-30 tracking-widest mb-1">RESISTANT</h2>
         <div className="font-serif text-4xl sm:text-5xl md:text-7xl font-black text-[var(--accent-rust)] leading-none">
           {resistant.toString().padStart(3, '0')}
         </div>
       </div>
-
     </div>
   );
 };

@@ -27,8 +27,8 @@ export default function Home() {
   return (
     <main className="flex h-screen w-screen flex-col overflow-hidden bg-[var(--bg-cream)] text-[var(--ink-black)]">
 
-      {/* 1. TOP HEADER + TITLE CLUSTER */}
-      <header className="w-full shrink-0 z-30 px-4 py-3 sm:px-8 sm:py-4 font-mono text-[10px] tracking-tighter uppercase">
+      {/* TOP HEADER + TITLE CLUSTER */}
+      <header className="w-full shrink-0 z-30 px-4 py-2 sm:px-8 sm:py-3 font-mono text-[10px] tracking-tighter uppercase">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-[var(--accent-rust)]"></div>
@@ -38,11 +38,11 @@ export default function Home() {
             <span className="cursor-pointer hover:underline opacity-50 hidden sm:inline">ARCHIVE</span>
           </div>
         </div>
-        <div className="mt-3 flex flex-col items-center">
+        <div className="mt-1 flex flex-col items-center">
           <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter text-black leading-none uppercase select-none">
             EVODISH
           </h1>
-          <div className="flex flex-wrap justify-center gap-2 mt-1 sm:mt-2">
+          <div className="flex flex-wrap justify-center gap-2 mt-1">
             <div className="pill-label bg-white/70 backdrop-blur-sm shadow-sm border-black/5">ANTIBIOTIC SIMULATION</div>
             <div className="pill-label border-[var(--accent-rust)] text-[var(--accent-rust)] bg-[var(--bg-cream)] uppercase hidden sm:block">EVOLUTIONARY PRESSURE</div>
             <div className="pill-label bg-black text-white uppercase">STATUS: ACTIVE</div>
@@ -50,17 +50,27 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 3. MAIN CONTENT — stats flanking the dish */}
-      <div className="flex-1 flex items-center justify-center w-full min-h-0 px-2 sm:px-4 gap-2 sm:gap-4">
+      {/* MAIN CONTENT — controls left, canvas center, stats right */}
+      <div className="flex-1 flex items-stretch w-full min-h-0 px-2 sm:px-4 gap-2 sm:gap-4 pb-2 sm:pb-4">
 
-        {/* Left Stats */}
-        <StatsPanel
-          side="left"
-          susceptible={stats.susceptible}
-          resistant={stats.resistant}
-        />
+        {/* Left: Control Deck */}
+        <div className="shrink-0 w-36 sm:w-44 md:w-52 overflow-y-auto z-10">
+          <ControlDeck
+            onReset={handleReset}
+            mutationRate={mutationRate}
+            setMutationRate={setMutationRate}
+            reproductionChance={reproductionChance}
+            setReproductionChance={setReproductionChance}
+            maxPopulation={maxPopulation}
+            setMaxPopulation={setMaxPopulation}
+            discRadius={discRadius}
+            setDiscRadius={setDiscRadius}
+            movementSpeed={movementSpeed}
+            setMovementSpeed={setMovementSpeed}
+          />
+        </div>
 
-        {/* Petri Dish Canvas — constrained to available space */}
+        {/* Center: Petri Dish Canvas */}
         <div className="relative flex items-center justify-center flex-1 min-w-0 h-full max-h-full overflow-hidden">
           <PetriDish
             resetSignal={resetSignal}
@@ -73,29 +83,19 @@ export default function Home() {
           />
         </div>
 
-        {/* Right Stats */}
-        <StatsPanel
-          side="right"
-          susceptible={stats.susceptible}
-          resistant={stats.resistant}
-        />
-      </div>
-
-      {/* 4. BOTTOM CONTROL SECTION */}
-      <div className="w-full shrink-0 flex flex-col items-center z-30 px-4 py-3 sm:px-8 sm:py-4 border-t border-black/10">
-        <ControlDeck
-          onReset={handleReset}
-          mutationRate={mutationRate}
-          setMutationRate={setMutationRate}
-          reproductionChance={reproductionChance}
-          setReproductionChance={setReproductionChance}
-          maxPopulation={maxPopulation}
-          setMaxPopulation={setMaxPopulation}
-          discRadius={discRadius}
-          setDiscRadius={setDiscRadius}
-          movementSpeed={movementSpeed}
-          setMovementSpeed={setMovementSpeed}
-        />
+        {/* Right: Stats Panels stacked */}
+        <div className="shrink-0 w-28 sm:w-36 md:w-48 flex flex-col justify-start gap-6 pt-4 sm:pt-6">
+          <StatsPanel
+            side="left"
+            susceptible={stats.susceptible}
+            resistant={stats.resistant}
+          />
+          <StatsPanel
+            side="right"
+            susceptible={stats.susceptible}
+            resistant={stats.resistant}
+          />
+        </div>
       </div>
     </main>
   );

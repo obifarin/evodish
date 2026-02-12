@@ -42,24 +42,24 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
       desc: "GENOME STABILITY: Probability of a bacterium developing resistance during division."
     },
     {
-      label: "GROWTH",
+      label: "GROWTH RATE",
       value: reproductionChance,
       setValue: setReproductionChance,
       min: 0,
       max: 0.05,
       step: 0.001,
       display: (v: number) => `${(v * 100).toFixed(1)}%`,
-      desc: "REPLICATION SPEED: How frequently bacteria divide. Represents nutrient richness."
+      desc: "How quickly the population divides and grows."
     },
     {
-      label: "NUTRIENTS",
+      label: "CAPACITY",
       value: maxPopulation,
       setValue: setMaxPopulation,
       min: 100,
       max: 2000,
       step: 50,
       display: (v: number) => `${v}`,
-      desc: "CARRYING CAPACITY: Max population the dish can support. Simulates space/resources."
+      desc: "Maximum number of cells the dish can hold."
     },
     {
       label: "DRUG STR.",
@@ -69,44 +69,42 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
       max: 150,
       step: 5,
       display: (v: number) => `${v}PX`,
-      desc: "ANTIBIOTIC DOSAGE: The radius of the 'Kill Zone' for antibiotic discs."
+      desc: "Radius of the antibiotic kill area around a disc."
     },
     {
-      label: "TEMP",
+      label: "MOTION",
       value: movementSpeed,
       setValue: setMovementSpeed,
       min: 0.1,
       max: 4.0,
       step: 0.1,
       display: (v: number) => `${v.toFixed(1)}X`,
-      desc: "KINETIC ENERGY: Speed of bacterial movement. Affects mixing and spreading."
+      desc: "Speed of bacterial movement and mixing."
     },
   ];
 
   return (
-    <div className="z-10 w-full max-w-6xl bg-transparent pt-3 flex flex-col gap-4">
-      {/* Description / Status Bar */}
-      <div className="flex justify-between items-center font-mono text-[9px] uppercase tracking-wider text-[var(--ink-black)] opacity-60">
-        <div className="flex items-center gap-2">
-          <Info size={12} strokeWidth={3} />
-          <span className="truncate max-w-[250px] sm:max-w-none">{description}</span>
-        </div>
+    <div className="h-full flex flex-col gap-5 pt-4 sm:pt-6 font-mono text-[10px] uppercase">
+      {/* Description / Status */}
+      <div className="flex items-start gap-1.5 text-[9px] tracking-wider text-[var(--ink-black)] opacity-60 min-h-[3rem]">
+        <Info size={10} strokeWidth={3} className="shrink-0 mt-0.5" />
+        <span className="leading-tight">{description}</span>
       </div>
 
-      {/* Controls Grid — responsive: 2-col on mobile, full row on desktop */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-x-6 gap-y-4 items-end">
+      {/* Vertical Controls */}
+      <div className="flex flex-col gap-5">
         {controls.map((ctrl) => (
           <div
             key={ctrl.label}
-            className="flex flex-col gap-2 min-w-0"
+            className="flex flex-col gap-1.5"
             onMouseEnter={() => setDescription(ctrl.desc)}
             onMouseLeave={() => setDescription("INITIALIZED")}
           >
             <div className="flex justify-between items-baseline border-b border-black/10 pb-1">
-              <label className="font-mono text-[10px] font-bold tracking-tighter text-black uppercase truncate">
+              <label className="font-bold tracking-tighter text-black truncate">
                 {ctrl.label}
               </label>
-              <span className="font-mono text-[10px] font-bold text-black/40 ml-1 shrink-0">
+              <span className="font-bold text-black/40 ml-1 shrink-0">
                 {ctrl.display(ctrl.value)}
               </span>
             </div>
@@ -121,17 +119,17 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
             />
           </div>
         ))}
+      </div>
 
-        {/* Reset Button */}
-        <div className="flex flex-col justify-center items-center sm:items-end col-span-2 sm:col-span-1">
-          <button
-            onClick={onReset}
-            className="group flex flex-col items-center gap-1 font-mono text-[9px] font-bold uppercase hover:text-[var(--accent-rust)] transition-colors"
-          >
-            <RotateCcw size={16} className="group-hover:rotate-[-45deg] transition-transform" />
-            <span>RESET</span>
-          </button>
-        </div>
+      {/* Reset Button */}
+      <div className="mt-auto pb-4">
+        <button
+          onClick={onReset}
+          className="group flex items-center gap-2 font-mono text-[9px] font-bold uppercase hover:text-[var(--accent-rust)] transition-colors"
+        >
+          <RotateCcw size={14} className="group-hover:rotate-[-45deg] transition-transform" />
+          <span>RESET</span>
+        </button>
       </div>
     </div>
   );
