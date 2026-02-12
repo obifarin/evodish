@@ -14,8 +14,8 @@ export default function Home() {
 
   // Simulation Parameters
   const [mutationRate, setMutationRate] = useState(0.05);
-  const [reproductionChance, setReproductionChance] = useState(0.005);
-  const [maxPopulation, setMaxPopulation] = useState(1000);
+  const [reproductionChance, setReproductionChance] = useState(0.002);
+  const [maxPopulation, setMaxPopulation] = useState(2000);
   const [discRadius, setDiscRadius] = useState(60);
   const [movementSpeed, setMovementSpeed] = useState(1.0);
 
@@ -117,9 +117,7 @@ export default function Home() {
             susceptible={stats.susceptible}
             resistant={stats.resistant}
           />
-          {advancedMode && (
-            <PopulationChart history={populationHistory} />
-          )}
+          <PopulationChart history={populationHistory} />
         </div>
       </div>
     </main>

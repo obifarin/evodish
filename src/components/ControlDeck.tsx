@@ -89,7 +89,7 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
       value: discRadius,
       setValue: setDiscRadius,
       min: 20,
-      max: 150,
+      max: 100,
       step: 5,
       display: (v: number) => `${v}PX`,
       desc: "Radius of the antibiotic kill area around a disc."
@@ -187,8 +187,26 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
       {/* Advanced Controls (conditional) */}
       {advancedMode && (
         <div className="flex flex-col gap-5">
-          <div className="text-[8px] opacity-40 tracking-widest -mb-2">HGT + FITNESS + GRADIENTS</div>
           {advancedControls.map(renderControl)}
+
+          {/* Gradient — read-only indicator */}
+          <div
+            className="flex flex-col gap-1.5"
+            onMouseEnter={() => setDescription("Sub-lethal gradient zones. Inner zone is lethal; outer halo boosts mutation rate 10x, breeding resistant colonies at the edge.")}
+            onMouseLeave={() => setDescription("INITIALIZED")}
+          >
+            <div className="flex justify-between items-baseline border-b border-black/10 pb-1">
+              <label className="font-bold tracking-tighter text-black truncate">
+                GRADIENT
+              </label>
+              <span className="font-bold text-[var(--accent-rust)] ml-1 shrink-0">
+                ON
+              </span>
+            </div>
+            <div className="text-[8px] opacity-40 leading-tight normal-case">
+              Antibiotic discs now have a lethal core and a stress halo that accelerates mutation.
+            </div>
+          </div>
         </div>
       )}
 

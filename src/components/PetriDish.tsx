@@ -177,38 +177,39 @@ const PetriDish: React.FC<PetriDishProps> = ({
     // ── Draw Antibiotic Discs ──
     for (const disc of discs) {
       if (params.advancedMode) {
-        // Gradient kill zone visual
+        // Advanced mode: same dark inner disc + lighter outer halo for stress zone
+        const haloExtra = 20; // additional radius for stress zone halo
+        const outerRadius = disc.radius + haloExtra;
+
+        // 1. Outer halo (stress zone) — lighter semi-transparent ring
         const ctx = p5.drawingContext as CanvasRenderingContext2D;
         ctx.save();
-
-        // Radial gradient: white/opaque center → transparent edge
         const grad = ctx.createRadialGradient(
-          disc.pos.x, disc.pos.y, 0,
-          disc.pos.x, disc.pos.y, disc.radius
+          disc.pos.x, disc.pos.y, disc.radius,
+          disc.pos.x, disc.pos.y, outerRadius
         );
-        grad.addColorStop(0, "rgba(255, 255, 255, 0.5)");
-        grad.addColorStop(0.55, "rgba(255, 255, 255, 0.2)");
-        grad.addColorStop(1, "rgba(255, 200, 50, 0)");
+        grad.addColorStop(0, "rgba(26, 26, 26, 0.15)");
+        grad.addColorStop(1, "rgba(26, 26, 26, 0)");
         ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.arc(disc.pos.x, disc.pos.y, disc.radius, 0, Math.PI * 2);
+        ctx.arc(disc.pos.x, disc.pos.y, outerRadius, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
-        // Inner lethal zone ring (subtle indicator)
-        p5.noFill();
-        p5.stroke(26, 26, 26, 50);
-        p5.strokeWeight(0.5);
-        p5.drawingContext.setLineDash([2, 4]);
-        p5.circle(disc.pos.x, disc.pos.y, disc.radius * 1.2); // 0.6 * radius * 2 = diameter
-        p5.drawingContext.setLineDash([]);
-
-        // Outer dashed border
-        p5.noFill();
-        p5.stroke(26, 26, 26, 80);
+        // 2. Inner lethal disc — same dark fill as default mode
+        p5.fill(26, 26, 26, 30);
+        p5.stroke("#1A1A1A");
         p5.strokeWeight(1);
         p5.drawingContext.setLineDash([5, 5]);
         p5.circle(disc.pos.x, disc.pos.y, disc.radius * 2);
+        p5.drawingContext.setLineDash([]);
+
+        // 3. Outer halo dashed border (stress zone boundary)
+        p5.noFill();
+        p5.stroke(26, 26, 26, 40);
+        p5.strokeWeight(0.5);
+        p5.drawingContext.setLineDash([3, 4]);
+        p5.circle(disc.pos.x, disc.pos.y, outerRadius * 2);
         p5.drawingContext.setLineDash([]);
       } else {
         // Original disc rendering
@@ -268,7 +269,7 @@ const PetriDish: React.FC<PetriDishProps> = ({
                     fromY: a.pos.y,
                     toX: b.pos.x,
                     toY: b.pos.y,
-                    framesLeft: 8,
+                    framesLeft: 12,
                   });
                 }
               }
@@ -283,22 +284,6 @@ const PetriDish: React.FC<PetriDishProps> = ({
         b.lastReproduced = b.age; // reset reproduction timer for newly resistant
       }
       conjugationLinesRef.current.push(...newLines);
-    }
-
-    // ── Draw Conjugation Lines (pilus visual) ──
-    if (params.advancedMode) {
-      const lines = conjugationLinesRef.current;
-      for (let i = lines.length - 1; i >= 0; i--) {
-        const line = lines[i];
-        const alpha = (line.framesLeft / 8) * 150;
-        p5.stroke(255, 255, 255, alpha);
-        p5.strokeWeight(1);
-        p5.line(line.fromX, line.fromY, line.toX, line.toY);
-        line.framesLeft--;
-        if (line.framesLeft <= 0) {
-          lines.splice(i, 1);
-        }
-      }
     }
 
     // ── Main Simulation Loop ──
@@ -317,15 +302,16 @@ const PetriDish: React.FC<PetriDishProps> = ({
           const distSq = dx * dx + dy * dy;
 
           if (params.advancedMode) {
-            // Gradient kill zones
-            const innerRadius = disc.radius * 0.6;
-            const innerRadiusSq = innerRadius * innerRadius;
-            const outerRadiusSq = disc.radius * disc.radius;
+            // Gradient kill zones: inner = full disc (lethal), outer = +20px halo (stress)
+            const innerRadiusSq = disc.radius * disc.radius;
+            const haloExtra = 20;
+            const outerRadius = disc.radius + haloExtra;
+            const outerRadiusSq = outerRadius * outerRadius;
 
             if (distSq < innerRadiusSq) {
-              b.health -= 20; // Zone A: lethal — fast kill
+              b.health -= 5; // Zone A: lethal — same kill rate as default
             } else if (distSq < outerRadiusSq) {
-              inStressZone = true; // Zone B: stress — 10x mutation boost
+              inStressZone = true; // Zone B: stress halo — 10x mutation boost
             }
           } else {
             // Original: flat kill zone
@@ -406,6 +392,28 @@ const PetriDish: React.FC<PetriDishProps> = ({
     }
 
     bacteriaRef.current = [...survivors, ...newBacteria];
+
+    // ── Draw Conjugation Lines (pilus visual) — drawn ON TOP of bacteria ──
+    if (params.advancedMode) {
+      const lines = conjugationLinesRef.current;
+      for (let i = lines.length - 1; i >= 0; i--) {
+        const line = lines[i];
+        const t = line.framesLeft / 12; // normalized 0→1
+        // Bright gold line for high contrast against agar and bacteria
+        p5.stroke(255, 200, 50, t * 220);
+        p5.strokeWeight(2);
+        p5.line(line.fromX, line.fromY, line.toX, line.toY);
+        // Small dot at each end for emphasis
+        p5.noStroke();
+        p5.fill(255, 200, 50, t * 200);
+        p5.circle(line.fromX, line.fromY, 3);
+        p5.circle(line.toX, line.toY, 3);
+        line.framesLeft--;
+        if (line.framesLeft <= 0) {
+          lines.splice(i, 1);
+        }
+      }
+    }
 
     if (p5.frameCount % 10 === 0) {
       const susceptible = bacteriaRef.current.filter(b => !b.isResistant).length;
