@@ -13,6 +13,23 @@ interface ControlDeckProps {
   setDiscRadius: (radius: number) => void;
   movementSpeed: number;
   setMovementSpeed: (speed: number) => void;
+  advancedMode: boolean;
+  setAdvancedMode: (mode: boolean) => void;
+  conjugationRate: number;
+  setConjugationRate: (rate: number) => void;
+  fitnessCostMultiplier: number;
+  setFitnessCostMultiplier: (mult: number) => void;
+}
+
+interface ControlConfig {
+  label: string;
+  value: number;
+  setValue: (v: number) => void;
+  min: number;
+  max: number;
+  step: number;
+  display: (v: number) => string;
+  desc: string;
 }
 
 const ControlDeck: React.FC<ControlDeckProps> = ({
@@ -27,10 +44,16 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
   setDiscRadius,
   movementSpeed,
   setMovementSpeed,
+  advancedMode,
+  setAdvancedMode,
+  conjugationRate,
+  setConjugationRate,
+  fitnessCostMultiplier,
+  setFitnessCostMultiplier,
 }) => {
   const [description, setDescription] = useState<string>("INITIALIZED");
 
-  const controls = [
+  const controls: ControlConfig[] = [
     {
       label: "MUTATION",
       value: mutationRate,
@@ -83,6 +106,56 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
     },
   ];
 
+  const advancedControls: ControlConfig[] = [
+    {
+      label: "CONJUGATION",
+      value: conjugationRate,
+      setValue: setConjugationRate,
+      min: 0,
+      max: 0.05,
+      step: 0.001,
+      display: (v: number) => `${(v * 100).toFixed(1)}%`,
+      desc: "Plasmid exchange rate. Resistant cells pass resistance to nearby susceptible cells via pilus."
+    },
+    {
+      label: "FITNESS COST",
+      value: fitnessCostMultiplier,
+      setValue: setFitnessCostMultiplier,
+      min: 1.0,
+      max: 3.0,
+      step: 0.1,
+      display: (v: number) => `${v.toFixed(1)}X`,
+      desc: "Metabolic cost of resistance. Resistant cells divide this many times slower than wild type."
+    },
+  ];
+
+  const renderControl = (ctrl: ControlConfig) => (
+    <div
+      key={ctrl.label}
+      className="flex flex-col gap-1.5"
+      onMouseEnter={() => setDescription(ctrl.desc)}
+      onMouseLeave={() => setDescription("INITIALIZED")}
+    >
+      <div className="flex justify-between items-baseline border-b border-black/10 pb-1">
+        <label className="font-bold tracking-tighter text-black truncate">
+          {ctrl.label}
+        </label>
+        <span className="font-bold text-black/40 ml-1 shrink-0">
+          {ctrl.display(ctrl.value)}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={ctrl.min}
+        max={ctrl.max}
+        step={ctrl.step}
+        value={ctrl.value}
+        onChange={(e) => ctrl.setValue(parseFloat(e.target.value))}
+        className="w-full h-px bg-black appearance-none cursor-pointer accent-black hover:h-1 transition-all"
+      />
+    </div>
+  );
+
   return (
     <div className="h-full flex flex-col gap-5 pt-4 sm:pt-6 font-mono text-[10px] uppercase">
       {/* Description / Status */}
@@ -91,35 +164,33 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
         <span className="leading-tight">{description}</span>
       </div>
 
-      {/* Vertical Controls */}
+      {/* Base Controls */}
       <div className="flex flex-col gap-5">
-        {controls.map((ctrl) => (
-          <div
-            key={ctrl.label}
-            className="flex flex-col gap-1.5"
-            onMouseEnter={() => setDescription(ctrl.desc)}
-            onMouseLeave={() => setDescription("INITIALIZED")}
-          >
-            <div className="flex justify-between items-baseline border-b border-black/10 pb-1">
-              <label className="font-bold tracking-tighter text-black truncate">
-                {ctrl.label}
-              </label>
-              <span className="font-bold text-black/40 ml-1 shrink-0">
-                {ctrl.display(ctrl.value)}
-              </span>
-            </div>
-            <input
-              type="range"
-              min={ctrl.min}
-              max={ctrl.max}
-              step={ctrl.step}
-              value={ctrl.value}
-              onChange={(e) => ctrl.setValue(parseFloat(e.target.value))}
-              className="w-full h-px bg-black appearance-none cursor-pointer accent-black hover:h-1 transition-all"
-            />
-          </div>
-        ))}
+        {controls.map(renderControl)}
       </div>
+
+      {/* Advanced Mode Toggle */}
+      <div className="border-t border-black/10 pt-4 mt-1">
+        <button
+          onClick={() => setAdvancedMode(!advancedMode)}
+          className="flex items-center gap-2 w-full group"
+        >
+          <div className={`relative w-7 h-3.5 rounded-full transition-colors duration-200 ${advancedMode ? "bg-[var(--accent-rust)]" : "bg-black/20"}`}>
+            <div className={`absolute top-0.5 w-2.5 h-2.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${advancedMode ? "translate-x-3.5" : "translate-x-0.5"}`} />
+          </div>
+          <span className="text-[9px] font-bold tracking-tight leading-tight text-left">
+            IT&apos;S MORE COMPLICATED
+          </span>
+        </button>
+      </div>
+
+      {/* Advanced Controls (conditional) */}
+      {advancedMode && (
+        <div className="flex flex-col gap-5">
+          <div className="text-[8px] opacity-40 tracking-widest -mb-2">HGT + FITNESS + GRADIENTS</div>
+          {advancedControls.map(renderControl)}
+        </div>
+      )}
 
       {/* Reset Button */}
       <div className="mt-auto pb-4">

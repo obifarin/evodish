@@ -4,10 +4,13 @@ import React, { useState, useCallback } from "react";
 import PetriDish from "@/components/PetriDish";
 import StatsPanel from "@/components/StatsPanel";
 import ControlDeck from "@/components/ControlDeck";
+import PopulationChart from "@/components/PopulationChart";
+import { PopulationSnapshot } from "@/types";
 
 export default function Home() {
   const [resetSignal, setResetSignal] = useState(0);
   const [stats, setStats] = useState({ susceptible: 0, resistant: 0 });
+  const [populationHistory, setPopulationHistory] = useState<PopulationSnapshot[]>([]);
 
   // Simulation Parameters
   const [mutationRate, setMutationRate] = useState(0.05);
@@ -16,12 +19,22 @@ export default function Home() {
   const [discRadius, setDiscRadius] = useState(60);
   const [movementSpeed, setMovementSpeed] = useState(1.0);
 
+  // Advanced Mode
+  const [advancedMode, setAdvancedMode] = useState(false);
+  const [conjugationRate, setConjugationRate] = useState(0.005);
+  const [fitnessCostMultiplier, setFitnessCostMultiplier] = useState(1.5);
+
   const handleReset = () => {
     setResetSignal((prev) => prev + 1);
+    setPopulationHistory([]);
   };
 
   const onStatsUpdate = useCallback((susceptible: number, resistant: number) => {
     setStats({ susceptible, resistant });
+    setPopulationHistory(prev => {
+      const next = [...prev, { susceptible, resistant }];
+      return next.length > 200 ? next.slice(-200) : next;
+    });
   }, []);
 
   return (
@@ -67,6 +80,12 @@ export default function Home() {
             setDiscRadius={setDiscRadius}
             movementSpeed={movementSpeed}
             setMovementSpeed={setMovementSpeed}
+            advancedMode={advancedMode}
+            setAdvancedMode={setAdvancedMode}
+            conjugationRate={conjugationRate}
+            setConjugationRate={setConjugationRate}
+            fitnessCostMultiplier={fitnessCostMultiplier}
+            setFitnessCostMultiplier={setFitnessCostMultiplier}
           />
         </div>
 
@@ -80,6 +99,9 @@ export default function Home() {
             discRadius={discRadius}
             movementSpeed={movementSpeed}
             onStatsUpdate={onStatsUpdate}
+            advancedMode={advancedMode}
+            conjugationRate={conjugationRate}
+            fitnessCostMultiplier={fitnessCostMultiplier}
           />
         </div>
 
@@ -95,6 +117,9 @@ export default function Home() {
             susceptible={stats.susceptible}
             resistant={stats.resistant}
           />
+          {advancedMode && (
+            <PopulationChart history={populationHistory} />
+          )}
         </div>
       </div>
     </main>
