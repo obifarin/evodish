@@ -27,30 +27,28 @@ export default function Home() {
   return (
     <main className="flex h-screen w-screen flex-col overflow-hidden bg-[var(--bg-cream)] text-[var(--ink-black)]">
 
-      {/* 1. TOP NAVIGATION BAR */}
-      <header className="w-full flex justify-between items-center shrink-0 z-30 px-4 py-3 sm:px-8 sm:py-4 font-mono text-[10px] tracking-tighter uppercase">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-[var(--accent-rust)]"></div>
-          <span>PROJECT: EVODISH // SEQ-001</span>
+      {/* 1. TOP HEADER + TITLE CLUSTER */}
+      <header className="w-full shrink-0 z-30 px-4 py-3 sm:px-8 sm:py-4 font-mono text-[10px] tracking-tighter uppercase">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-[var(--accent-rust)]"></div>
+            <span>LIVE_FEED</span>
+          </div>
+          <div className="flex gap-4 sm:gap-8">
+            <span className="cursor-pointer hover:underline opacity-50 hidden sm:inline">ARCHIVE</span>
+          </div>
         </div>
-        <div className="flex gap-4 sm:gap-8">
-          <span className="cursor-pointer hover:underline opacity-50 font-bold border-b border-black">LIVE_FEED</span>
-          <span className="cursor-pointer hover:underline opacity-50 hidden sm:inline">REPORTS</span>
-          <span className="cursor-pointer hover:underline opacity-50 hidden sm:inline">ARCHIVE</span>
+        <div className="mt-3 flex flex-col items-center">
+          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter text-black leading-none uppercase select-none">
+            EVODISH
+          </h1>
+          <div className="flex flex-wrap justify-center gap-2 mt-1 sm:mt-2">
+            <div className="pill-label bg-white/70 backdrop-blur-sm shadow-sm border-black/5">ANTIBIOTIC SIMULATION</div>
+            <div className="pill-label border-[var(--accent-rust)] text-[var(--accent-rust)] bg-[var(--bg-cream)] uppercase hidden sm:block">EVOLUTIONARY PRESSURE</div>
+            <div className="pill-label bg-black text-white uppercase">STATUS: ACTIVE</div>
+          </div>
         </div>
       </header>
-
-      {/* 2. EVODISH TITLE — prominent, visible */}
-      <div className="w-full shrink-0 flex flex-col items-center px-4 pb-1 sm:pb-2">
-        <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl font-black tracking-tighter text-black leading-none uppercase select-none">
-          EVODISH
-        </h1>
-        <div className="flex flex-wrap justify-center gap-2 mt-1 sm:mt-2">
-          <div className="pill-label bg-white/70 backdrop-blur-sm shadow-sm border-black/5">ANTIBIOTIC SIMULATION</div>
-          <div className="pill-label border-[var(--accent-rust)] text-[var(--accent-rust)] bg-[var(--bg-cream)] uppercase hidden sm:block">Evolutionary Pressure</div>
-          <div className="pill-label bg-black text-white uppercase">Status: Active</div>
-        </div>
-      </div>
 
       {/* 3. MAIN CONTENT — stats flanking the dish */}
       <div className="flex-1 flex items-center justify-center w-full min-h-0 px-2 sm:px-4 gap-2 sm:gap-4">
