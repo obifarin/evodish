@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { Info, RotateCcw } from "lucide-react";
+import { Info } from "lucide-react";
 
 interface ControlDeckProps {
-  onReset: () => void;
   mutationRate: number;
   setMutationRate: (rate: number) => void;
   reproductionChance: number;
@@ -33,7 +32,6 @@ interface ControlConfig {
 }
 
 const ControlDeck: React.FC<ControlDeckProps> = ({
-  onReset,
   mutationRate,
   setMutationRate,
   reproductionChance,
@@ -79,7 +77,7 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
       value: maxPopulation,
       setValue: setMaxPopulation,
       min: 100,
-      max: 2000,
+      max: 3000,
       step: 50,
       display: (v: number) => `${v}`,
       desc: "Maximum number of cells the dish can hold."
@@ -112,7 +110,7 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
       value: conjugationRate,
       setValue: setConjugationRate,
       min: 0,
-      max: 0.05,
+      max: 0.03,
       step: 0.001,
       display: (v: number) => `${(v * 100).toFixed(1)}%`,
       desc: "Plasmid exchange rate. Resistant cells pass resistance to nearby susceptible cells via pilus."
@@ -210,16 +208,6 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
         </div>
       )}
 
-      {/* Reset Button */}
-      <div className="mt-auto pb-4">
-        <button
-          onClick={onReset}
-          className="group flex items-center gap-2 font-mono text-[9px] font-bold uppercase hover:text-[var(--accent-rust)] transition-colors"
-        >
-          <RotateCcw size={14} className="group-hover:rotate-[-45deg] transition-transform" />
-          <span>RESET</span>
-        </button>
-      </div>
     </div>
   );
 };
