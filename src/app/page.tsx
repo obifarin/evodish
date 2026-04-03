@@ -209,7 +209,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="w-full shrink-0 text-center py-2 font-mono text-[10px] uppercase tracking-wider text-black">
-        Made by{" "}
+        by{" "}
         <a
           href="https://bifarin.me"
           target="_blank"

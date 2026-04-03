@@ -129,7 +129,7 @@ Resistance mechanisms (e.g., efflux pumps, altered ribosomes) are metabolically 
 
 ## Author
 
-Made by [Olatomiwa Bifarin](https://bifarin.me)
+by [Olatomiwa Bifarin](https://bifarin.me)
 
 ---
 
