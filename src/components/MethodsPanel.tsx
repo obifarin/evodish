@@ -177,6 +177,15 @@ const MethodsPanel: React.FC<MethodsPanelProps> = ({
                   <span className="pill-label border-[var(--accent-rust)] text-[var(--accent-rust)] bg-[var(--bg-cream)]">
                     Educational Model
                   </span>
+                  <a
+                    href="https://www.youtube.com/watch?v=k-bB78I8-_s"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="pill-label flex items-center gap-1.5 border-black/10 bg-white/80 transition-all hover:border-black/20 hover:bg-white hover:text-black"
+                  >
+                    <Play size={10} className="fill-current text-[var(--accent-rust)]" />
+                    Video Guide
+                  </a>
                 </div>
                 <div>
                   <h1

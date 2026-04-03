@@ -86,6 +86,15 @@ export default function Home() {
             <span>LIVE_FEED</span>
           </div>
           <div className="flex gap-4 sm:gap-8">
+            <a
+              href="https://www.youtube.com/watch?v=k-bB78I8-_s"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 cursor-pointer opacity-60 transition-opacity hover:opacity-100 hover:underline"
+            >
+              <Play size={10} className="fill-current" />
+              VIDEO_GUIDE
+            </a>
             <button
               type="button"
               onClick={() => setIsMethodsOpen(true)}
