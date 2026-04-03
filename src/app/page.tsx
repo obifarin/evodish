@@ -29,6 +29,10 @@ export default function Home() {
   const [conjugationRate, setConjugationRate] = useState(0.002);
   const [fitnessCostMultiplier, setFitnessCostMultiplier] = useState(1.5);
 
+  // Experiment Mode (Auto-Pause)
+  const [isExperimentMode, setIsExperimentMode] = useState(false);
+  const [stopFrame, setStopFrame] = useState(4000);
+
   const handleReset = () => {
     setResetSignal((prev) => prev + 1);
     setPopulationHistory([]);
@@ -46,7 +50,10 @@ export default function Home() {
 
   const onFrameUpdate = useCallback((frame: number) => {
     setSimFrame(frame);
-  }, []);
+    if (isExperimentMode && frame >= stopFrame) {
+      setPaused(true);
+    }
+  }, [isExperimentMode, stopFrame]);
 
   const onHgtUpdate = useCallback((count: number) => {
     setHgtCount(count);
@@ -101,6 +108,10 @@ export default function Home() {
             setConjugationRate={setConjugationRate}
             fitnessCostMultiplier={fitnessCostMultiplier}
             setFitnessCostMultiplier={setFitnessCostMultiplier}
+            isExperimentMode={isExperimentMode}
+            setIsExperimentMode={setIsExperimentMode}
+            stopFrame={stopFrame}
+            setStopFrame={setStopFrame}
           />
         </div>
 
@@ -158,6 +169,8 @@ export default function Home() {
             resistant={stats.resistant}
             simFrame={simFrame}
             hgtCount={hgtCount}
+            isExperimentMode={isExperimentMode}
+            stopFrame={stopFrame}
           />
           <StatsPanel
             side="right"
@@ -165,6 +178,8 @@ export default function Home() {
             resistant={stats.resistant}
             simFrame={simFrame}
             hgtCount={hgtCount}
+            isExperimentMode={isExperimentMode}
+            stopFrame={stopFrame}
           />
           <PopulationChart history={populationHistory} />
         </div>

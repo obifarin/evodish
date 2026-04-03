@@ -20,6 +20,10 @@ interface ControlDeckProps {
   setConjugationRate: (rate: number) => void;
   fitnessCostMultiplier: number;
   setFitnessCostMultiplier: (mult: number) => void;
+  isExperimentMode: boolean;
+  setIsExperimentMode: (mode: boolean) => void;
+  stopFrame: number;
+  setStopFrame: (frame: number) => void;
 }
 
 interface ControlConfig {
@@ -52,6 +56,10 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
   setConjugationRate,
   fitnessCostMultiplier,
   setFitnessCostMultiplier,
+  isExperimentMode,
+  setIsExperimentMode,
+  stopFrame,
+  setStopFrame,
 }) => {
   const [description, setDescription] = useState<string>("INITIALIZED");
 
@@ -221,6 +229,35 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
           </div>
         </div>
       )}
+
+      {/* Lab Protocol (Auto-Pause) */}
+      <div className="border-t border-black/10 pt-4 mt-auto">
+        <h3 className="font-bold text-black/30 mb-3 tracking-widest">LAB PROTOCOL</h3>
+        <div className="flex flex-col gap-4">
+          <button
+            onClick={() => setIsExperimentMode(!isExperimentMode)}
+            onMouseEnter={() => setDescription("AUTO-STOP: The simulation will automatically freeze when it reaches the specified frame limit.")}
+            onMouseLeave={() => setDescription("INITIALIZED")}
+            className="flex items-center gap-2 w-full group"
+          >
+            <div className={`relative w-7 h-3.5 rounded-full transition-colors duration-200 ${isExperimentMode ? "bg-black" : "bg-black/20"}`}>
+              <div className={`absolute top-0.5 w-2.5 h-2.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${isExperimentMode ? "translate-x-3.5" : "translate-x-0.5"}`} />
+            </div>
+            <span className="text-[9px] font-bold tracking-tight">AUTO-STOP</span>
+          </button>
+
+          {isExperimentMode && renderControl({
+            label: "LIMIT",
+            value: stopFrame,
+            setValue: setStopFrame,
+            min: 1000,
+            max: 10000,
+            step: 500,
+            display: (v: number) => `${v}F`,
+            desc: "The specific frame at which the simulation will auto-pause."
+          })}
+        </div>
+      </div>
 
     </div>
   );

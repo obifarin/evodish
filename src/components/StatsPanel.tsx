@@ -5,12 +5,23 @@ interface StatsPanelProps {
   resistant: number;
   simFrame: number;
   hgtCount: number;
+  isExperimentMode: boolean;
+  stopFrame: number;
   side: "left" | "right";
 }
 
-const StatsPanel: React.FC<StatsPanelProps> = ({ susceptible, resistant, simFrame, hgtCount, side }) => {
+const StatsPanel: React.FC<StatsPanelProps> = ({ 
+  susceptible, 
+  resistant, 
+  simFrame, 
+  hgtCount, 
+  isExperimentMode,
+  stopFrame,
+  side 
+}) => {
   const total = susceptible + resistant;
   const resPercent = total > 0 ? ((resistant / total) * 100).toFixed(1) : "0.0";
+  const isLimitReached = isExperimentMode && simFrame >= stopFrame;
 
   if (side === "left") {
     return (
@@ -24,12 +35,14 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ susceptible, resistant, simFram
           <div className="flex gap-2">
             <span className="opacity-60">STATUS:</span>
             <span className={resistant > 50 ? "text-[var(--accent-rust)] animate-pulse font-bold" : ""}>
-              {resistant > 50 ? "MUTATING" : "UNIFORM"}
+              {isLimitReached ? "COMPLETE" : (resistant > 50 ? "MUTATING" : "UNIFORM")}
             </span>
           </div>
           <div className="flex gap-2">
             <span className="opacity-60">FRAME:</span>
-            <span className="tabular-nums">{simFrame.toString().padStart(5, '0')}</span>
+            <span className={`tabular-nums ${isLimitReached ? "text-[var(--accent-rust)] font-bold underline" : ""}`}>
+              {simFrame.toString().padStart(5, '0')}
+            </span>
           </div>
           <div className="flex gap-2">
             <span className="opacity-60">RES%:</span>
