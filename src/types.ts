@@ -26,3 +26,17 @@ export interface PopulationSnapshot {
   susceptible: number;
   resistant: number;
 }
+
+export interface SimulationParameters {
+  mutationRate: number;
+  reproductionChance: number;
+  maxPopulation: number;
+  maxAge: number;
+  discRadius: number;
+  movementSpeed: number;
+  advancedMode: boolean;
+  conjugationRate: number;
+  fitnessCostMultiplier: number;
+  isExperimentMode: boolean;
+  stopFrame: number;
+}

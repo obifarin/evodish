@@ -1,16 +1,18 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { Play, Pause, RotateCcw } from "lucide-react";
 import PetriDish from "@/components/PetriDish";
 import StatsPanel from "@/components/StatsPanel";
 import ControlDeck from "@/components/ControlDeck";
 import PopulationChart from "@/components/PopulationChart";
-import { PopulationSnapshot } from "@/types";
+import MethodsPanel from "@/components/MethodsPanel";
+import { PopulationSnapshot, SimulationParameters } from "@/types";
 
 export default function Home() {
   const [resetSignal, setResetSignal] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [isMethodsOpen, setIsMethodsOpen] = useState(false);
   const [stats, setStats] = useState({ susceptible: 0, resistant: 0 });
   const [populationHistory, setPopulationHistory] = useState<PopulationSnapshot[]>([]);
   const [simFrame, setSimFrame] = useState(0);
@@ -59,6 +61,20 @@ export default function Home() {
     setHgtCount(count);
   }, []);
 
+  const simulationParameters: SimulationParameters = {
+    mutationRate,
+    reproductionChance,
+    maxPopulation,
+    maxAge,
+    discRadius,
+    movementSpeed,
+    advancedMode,
+    conjugationRate,
+    fitnessCostMultiplier,
+    isExperimentMode,
+    stopFrame,
+  };
+
   return (
     <main className="flex h-screen w-screen flex-col overflow-hidden bg-[var(--bg-cream)] text-[var(--ink-black)]">
 
@@ -70,7 +86,13 @@ export default function Home() {
             <span>LIVE_FEED</span>
           </div>
           <div className="flex gap-4 sm:gap-8">
-            <span className="cursor-pointer hover:underline opacity-50 hidden sm:inline">ARCHIVE</span>
+            <button
+              type="button"
+              onClick={() => setIsMethodsOpen(true)}
+              className="cursor-pointer opacity-60 transition-opacity hover:opacity-100 hover:underline"
+            >
+              METHODS
+            </button>
           </div>
         </div>
         <div className="mt-1 flex flex-col items-center">
@@ -197,6 +219,12 @@ export default function Home() {
           Olatomiwa Bifarin
         </a>
       </footer>
+
+      <MethodsPanel
+        isOpen={isMethodsOpen}
+        onClose={() => setIsMethodsOpen(false)}
+        parameters={simulationParameters}
+      />
     </main>
   );
 }
