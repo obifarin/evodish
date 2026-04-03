@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { BookOpenText, FlaskConical, Microscope, X } from "lucide-react";
+import { BookOpenText, FlaskConical, Microscope, Play, X } from "lucide-react";
 import {
   ADVANCED_MODE_DESCRIPTION,
   GRADIENT_DESCRIPTION,
