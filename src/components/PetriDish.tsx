@@ -12,9 +12,12 @@ interface PetriDishProps {
   resetSignal: number;
   paused: boolean;
   onStatsUpdate: (susceptible: number, resistant: number) => void;
+  onFrameUpdate: (frame: number) => void;
+  onHgtUpdate: (count: number) => void;
   mutationRate: number;
   reproductionChance: number;
   maxPopulation: number;
+  maxAge: number;
   discRadius: number;
   movementSpeed: number;
   advancedMode: boolean;
@@ -26,14 +29,18 @@ interface PetriDishProps {
 const CANVAS_SIZE = 520;
 const DISH_RADIUS = 240;
 const SPATIAL_CELL_SIZE = 16;
+const REPRODUCTION_COOLDOWN = 100; // Minimum frames between divisions
 
 const PetriDish: React.FC<PetriDishProps> = ({
   resetSignal,
   paused,
   onStatsUpdate,
+  onFrameUpdate,
+  onHgtUpdate,
   mutationRate,
   reproductionChance,
   maxPopulation,
+  maxAge,
   discRadius,
   movementSpeed,
   advancedMode,
@@ -46,12 +53,15 @@ const PetriDish: React.FC<PetriDishProps> = ({
   const conjugationLinesRef = useRef<ConjugationLine[]>([]);
   const agarTextureRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const simFrameRef = useRef(0);
+  const hgtTotalRef = useRef(0);
   const [cssScale, setCssScale] = useState(1);
 
   const paramsRef = useRef({
     mutationRate,
     reproductionChance,
     maxPopulation,
+    maxAge,
     discRadius,
     movementSpeed,
     advancedMode,
@@ -65,6 +75,7 @@ const PetriDish: React.FC<PetriDishProps> = ({
       mutationRate,
       reproductionChance,
       maxPopulation,
+      maxAge,
       discRadius,
       movementSpeed,
       advancedMode,
@@ -72,7 +83,7 @@ const PetriDish: React.FC<PetriDishProps> = ({
       fitnessCostMultiplier,
       paused,
     };
-  }, [mutationRate, reproductionChance, maxPopulation, discRadius, movementSpeed, advancedMode, conjugationRate, fitnessCostMultiplier, paused]);
+  }, [mutationRate, reproductionChance, maxPopulation, maxAge, discRadius, movementSpeed, advancedMode, conjugationRate, fitnessCostMultiplier, paused]);
 
   // Measure container and compute CSS scale factor
   useEffect(() => {
@@ -95,6 +106,10 @@ const PetriDish: React.FC<PetriDishProps> = ({
   const initSimulation = useCallback((p5: any) => {
     discsRef.current = [];
     conjugationLinesRef.current = [];
+    simFrameRef.current = 0;
+    hgtTotalRef.current = 0;
+    onFrameUpdate(0);
+    onHgtUpdate(0);
     const population: Bacterium[] = [];
     for (let i = 0; i < 50; i++) {
       let pos;
@@ -112,7 +127,7 @@ const PetriDish: React.FC<PetriDishProps> = ({
       });
     }
     bacteriaRef.current = population;
-  }, []);
+  }, [onFrameUpdate, onHgtUpdate]);
 
   useEffect(() => {
     if (p5Ref.current) {
@@ -236,6 +251,8 @@ const PetriDish: React.FC<PetriDishProps> = ({
 
     // ── Skip simulation updates when paused ──
     if (!params.paused) {
+      simFrameRef.current++;
+      onFrameUpdate(simFrameRef.current);
 
       // ── Spatial Hash Grid (for conjugation proximity checks) ──
       let spatialHash: Record<string, Bacterium[]> | null = null;
@@ -251,7 +268,7 @@ const PetriDish: React.FC<PetriDishProps> = ({
       }
 
       // ── Conjugation (Horizontal Gene Transfer) ──
-      if (params.advancedMode && spatialHash && p5.frameCount % 3 === 0) {
+      if (params.advancedMode && spatialHash && simFrameRef.current % 3 === 0) {
         const toConvert = new Set<Bacterium>();
         const newLines: ConjugationLine[] = [];
         const keys = Object.keys(spatialHash);
@@ -277,6 +294,8 @@ const PetriDish: React.FC<PetriDishProps> = ({
                   // 8px proximity = 64 squared distance
                   if (distX * distX + distY * distY < 64 && p5.random(1) < params.conjugationRate) {
                     toConvert.add(b);
+                    hgtTotalRef.current++;
+                    onHgtUpdate(hgtTotalRef.current);
                     newLines.push({
                       fromX: a.pos.x,
                       fromY: a.pos.y,
@@ -322,18 +341,24 @@ const PetriDish: React.FC<PetriDishProps> = ({
               const outerRadiusSq = outerRadius * outerRadius;
 
               if (distSq < innerRadiusSq) {
-                b.health -= 5; // Zone A: lethal — same kill rate as default
+                b.health -= 10; // Zone A: lethal — Increased damage to prevent "tanking"
               } else if (distSq < outerRadiusSq) {
                 inStressZone = true; // Zone B: stress halo — 10x mutation boost
               }
             } else {
               // Original: flat kill zone
               if (distSq < disc.radius * disc.radius) {
-                b.health -= 5;
+                b.health -= 10;
               }
             }
           }
           if (b.health <= 0) isDead = true;
+        }
+
+        // Natural death (Old Age)
+        // Removed metabolic burden on lifespan to avoid double-penalizing resistance
+        if (b.age > params.maxAge) {
+          isDead = true;
         }
 
         if (!isDead) {
@@ -354,14 +379,17 @@ const PetriDish: React.FC<PetriDishProps> = ({
           if (bacteria.length + newBacteria.length < params.maxPopulation) {
             let shouldReproduce = false;
 
-            if (params.advancedMode) {
-              // Fitness cost: resistant bacteria reproduce slower by fitnessCostMultiplier
-              const effectiveChance = b.isResistant
-                ? params.reproductionChance / params.fitnessCostMultiplier
-                : params.reproductionChance;
-              shouldReproduce = p5.random(1) < effectiveChance;
-            } else {
-              shouldReproduce = p5.random(1) < params.reproductionChance;
+            // CHECK COOLDOWN: Must have waited enough frames since last division
+            if (b.age - b.lastReproduced > REPRODUCTION_COOLDOWN) {
+              if (params.advancedMode) {
+                // Fitness cost: resistant bacteria reproduce slower by fitnessCostMultiplier
+                const effectiveChance = b.isResistant
+                  ? params.reproductionChance / params.fitnessCostMultiplier
+                  : params.reproductionChance;
+                shouldReproduce = p5.random(1) < effectiveChance;
+              } else {
+                shouldReproduce = p5.random(1) < params.reproductionChance;
+              }
             }
 
             if (shouldReproduce) {
@@ -416,7 +444,7 @@ const PetriDish: React.FC<PetriDishProps> = ({
         }
       }
 
-      if (p5.frameCount % 10 === 0) {
+      if (simFrameRef.current % 10 === 0) {
         const susceptible = bacteriaRef.current.filter(b => !b.isResistant).length;
         const resistant = bacteriaRef.current.length - susceptible;
         onStatsUpdate(susceptible, resistant);

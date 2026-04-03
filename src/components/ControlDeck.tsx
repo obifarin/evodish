@@ -8,6 +8,8 @@ interface ControlDeckProps {
   setReproductionChance: (rate: number) => void;
   maxPopulation: number;
   setMaxPopulation: (count: number) => void;
+  maxAge: number;
+  setMaxAge: (age: number) => void;
   discRadius: number;
   setDiscRadius: (radius: number) => void;
   movementSpeed: number;
@@ -38,6 +40,8 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
   setReproductionChance,
   maxPopulation,
   setMaxPopulation,
+  maxAge,
+  setMaxAge,
   discRadius,
   setDiscRadius,
   movementSpeed,
@@ -71,6 +75,16 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
       step: 0.001,
       display: (v: number) => `${(v * 100).toFixed(1)}%`,
       desc: "How quickly the population divides and grows."
+    },
+    {
+      label: "LIFESPAN",
+      value: maxAge,
+      setValue: setMaxAge,
+      min: 100,
+      max: 2000,
+      step: 50,
+      display: (v: number) => `${v}F`,
+      desc: "Natural lifespan in frames. Bacteria die of old age if they don't divide."
     },
     {
       label: "CAPACITY",

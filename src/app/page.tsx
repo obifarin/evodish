@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Play, Pause, RotateCcw } from "lucide-react";
 import PetriDish from "@/components/PetriDish";
 import StatsPanel from "@/components/StatsPanel";
@@ -13,11 +13,14 @@ export default function Home() {
   const [paused, setPaused] = useState(false);
   const [stats, setStats] = useState({ susceptible: 0, resistant: 0 });
   const [populationHistory, setPopulationHistory] = useState<PopulationSnapshot[]>([]);
+  const [simFrame, setSimFrame] = useState(0);
+  const [hgtCount, setHgtCount] = useState(0);
 
   // Simulation Parameters
-  const [mutationRate, setMutationRate] = useState(0.05);
-  const [reproductionChance, setReproductionChance] = useState(0.002);
+  const [mutationRate, setMutationRate] = useState(0.005);
+  const [reproductionChance, setReproductionChance] = useState(0.01);
   const [maxPopulation, setMaxPopulation] = useState(2000);
+  const [maxAge, setMaxAge] = useState(800);
   const [discRadius, setDiscRadius] = useState(60);
   const [movementSpeed, setMovementSpeed] = useState(1.0);
 
@@ -29,6 +32,8 @@ export default function Home() {
   const handleReset = () => {
     setResetSignal((prev) => prev + 1);
     setPopulationHistory([]);
+    setSimFrame(0);
+    setHgtCount(0);
   };
 
   const onStatsUpdate = useCallback((susceptible: number, resistant: number) => {
@@ -37,6 +42,14 @@ export default function Home() {
       const next = [...prev, { susceptible, resistant }];
       return next.length > 200 ? next.slice(-200) : next;
     });
+  }, []);
+
+  const onFrameUpdate = useCallback((frame: number) => {
+    setSimFrame(frame);
+  }, []);
+
+  const onHgtUpdate = useCallback((count: number) => {
+    setHgtCount(count);
   }, []);
 
   return (
@@ -76,6 +89,8 @@ export default function Home() {
             setReproductionChance={setReproductionChance}
             maxPopulation={maxPopulation}
             setMaxPopulation={setMaxPopulation}
+            maxAge={maxAge}
+            setMaxAge={setMaxAge}
             discRadius={discRadius}
             setDiscRadius={setDiscRadius}
             movementSpeed={movementSpeed}
@@ -97,9 +112,12 @@ export default function Home() {
             mutationRate={mutationRate}
             reproductionChance={reproductionChance}
             maxPopulation={maxPopulation}
+            maxAge={maxAge}
             discRadius={discRadius}
             movementSpeed={movementSpeed}
             onStatsUpdate={onStatsUpdate}
+            onFrameUpdate={onFrameUpdate}
+            onHgtUpdate={onHgtUpdate}
             advancedMode={advancedMode}
             conjugationRate={conjugationRate}
             fitnessCostMultiplier={fitnessCostMultiplier}
@@ -138,11 +156,15 @@ export default function Home() {
             side="left"
             susceptible={stats.susceptible}
             resistant={stats.resistant}
+            simFrame={simFrame}
+            hgtCount={hgtCount}
           />
           <StatsPanel
             side="right"
             susceptible={stats.susceptible}
             resistant={stats.resistant}
+            simFrame={simFrame}
+            hgtCount={hgtCount}
           />
           <PopulationChart history={populationHistory} />
         </div>
