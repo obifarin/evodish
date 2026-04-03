@@ -69,7 +69,7 @@ export const baseControlDefinitions: ControlDefinition[] = [
     step: 50,
     formatValue: (value) => `${value}F`,
     shortDescription:
-      "Natural lifespan in frames. Bacteria die of old age if they don't divide.",
+      "Natural lifespan in frames. A cell dies of old age once it reaches this limit, regardless of how many times it has divided.",
     methodsDescription:
       "Sets the age limit for each cell in frames. This is a simulation convenience that keeps turnover happening even without antibiotics; it is not meant to represent a precise bacterial life cycle.",
   },
