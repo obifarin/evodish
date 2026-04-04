@@ -16,7 +16,7 @@ const spaceMono = Space_Mono({
 
 export const metadata: Metadata = {
   title: "EvoDish // Antibiotic Resistance",
-  description: "Bacterial Evolution & Terraform Protocol Simulation",
+  description: "Bacterial Evolution & Antibiotic Resistance Simulation",
 };
 
 export default function RootLayout({
