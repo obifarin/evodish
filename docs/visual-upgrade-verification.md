@@ -99,3 +99,19 @@ Browser checks with Advanced mode and auto-stop enabled:
   horizontal overflow. Narrow screens retain normal vertical scrolling.
 
 ESLint, TypeScript, the optimized production build, and whitespace checks passed.
+
+## Compact guide and attribution
+
+Removed the displayed HGT total and replaced the standing visual explanation with
+Reading the dish. The guide opens on hover, focus, or click/tap and dismisses on
+Escape, outside interaction, blur, or viewport changes. Basic mode explains that
+transfer and the stress halo are disabled; Advanced mode explains all three cues.
+Methods now describes the current population summary, guide, mode selector, and
+transfer filament duration and limit. The footer uses the requested Titerly/creator
+attribution with locally stored favicons from both linked websites.
+
+Verified click and keyboard opening, Escape dismissal, both mode descriptions,
+and updated Methods content in-browser. At 1280 × 720 there is no page overflow;
+at 390 × 844 the open guide remains inside the viewport with no horizontal
+overflow. Both favicon images loaded successfully. Production build, TypeScript,
+ESLint, and whitespace checks passed.

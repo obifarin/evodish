@@ -1,163 +1,161 @@
 # 🧫 EvoDish — Antibiotic Resistance Simulator
 
-An interactive, real-time simulation of bacterial evolution and antibiotic resistance. Drop antibiotics onto a digital petri dish and watch natural selection unfold — susceptible bacteria die while resistant mutants survive and multiply.
+EvoDish is an interactive teaching simulation of bacterial evolution. Place antibiotic discs in a digital petri dish and watch how mutation, selection, and gene transfer change the balance between susceptible and resistant cells.
+
+The dish has a dimensional appearance built with Canvas 2D lighting and capsule sprites. The underlying model is two-dimensional and deliberately simplified for exploration and teaching; it is not a predictive laboratory or clinical tool.
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue?logo=typescript)
 ![p5.js](https://img.shields.io/badge/p5.js-simulation-ed225d)
-![License](https://img.shields.io/badge/license-MIT-green)
 
----
+**Brought to you by [Titerly](https://www.titerly.com/) · Created by [Olatomiwa Bifarin](https://www.bifarin.me/).**
 
-## What It Does
+## What you can explore
 
-EvoDish simulates a bacterial population in a petri dish where you control evolutionary pressure in real time:
+Each run starts with 50 susceptible cells at random positions inside the dish. Cells move, age, and divide. Susceptible parents may produce resistant offspring when they divide; resistant parents produce resistant offspring.
 
-1. **Bacteria reproduce** via asexual division with a configurable growth rate
-2. **Mutations occur** randomly during division — susceptible cells can spawn resistant offspring
-3. **You drop antibiotic discs** onto the dish — susceptible bacteria inside the kill zone die; resistant bacteria survive
-4. **Natural selection plays out** — resistant colonies expand to fill the niche left by dead susceptible cells
+- **Basic mode:** explore mutation and selection. Susceptible cells lose health inside antibiotic zones, while resistant cells are protected.
+- **Advanced mode:** enable proximity-based gene transfer, a growth cost for resistance, and a stress halo outside each antibiotic zone that multiplies susceptible mutation probability by 10.
+- **Experiment controls:** adjust population and environmental parameters, pause or reset the culture, and use auto-stop to freeze a run at a chosen simulation frame.
+- **Observations:** follow susceptible and resistant counts, resistance percentage, recent population history, and the latest transfer frame.
 
-### Advanced Mode ("It's More Complicated")
+Select **Methods** in the app for the current parameter values, update rules, visual guide, and model limitations.
 
-Toggle advanced mode to unlock more biologically realistic mechanics:
+## Run locally
 
-- **Horizontal Gene Transfer (Conjugation):** Resistant bacteria can pass resistance genes to nearby susceptible cells via pilus — visualized as a subtle violet filament between the cells lasting about 1.5 seconds
-- **Fitness Cost:** Resistance comes at a metabolic cost — resistant bacteria reproduce slower than wild type
-- **Gradient Kill Zones:** Antibiotic discs have a lethal inner core and a sub-lethal stress halo that accelerates mutation rate by 10×
+### Requirements
 
----
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
+- Node.js **20.9.0 or newer**, as required by the installed Next.js 16 release
 - npm
-
-### Install & Run
 
 ```bash
 git clone https://github.com/obifarin/evodish.git
 cd evodish
-npm install
+npm ci
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000). No API keys, database, or environment variables are required for the simulation. The app uses Google fonts through `next/font/google`, so development and production builds need access to download those fonts.
 
----
+For a local production build:
 
-## How to Use
-
-| Action | How |
-|---|---|
-| **Place antibiotic** | Click anywhere inside the petri dish |
-| **Adjust mutation rate** | Drag the MUTATION slider (0–20%) |
-| **Change growth rate** | Drag the GROWTH RATE slider |
-| **Set population limit** | Drag the CAPACITY slider (100–3000) |
-| **Adjust drug strength** | Drag the DRUG STR. slider (kill zone radius) |
-| **Change bacterial speed** | Drag the MOTION slider |
-| **Toggle advanced mode** | Choose **Advanced** beside the dish |
-| **Pause / Resume** | Click the ⏸ / ▶ button below the dish |
-| **Reset simulation** | Click the ⟲ button below the dish |
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Framework | [Next.js 16](https://nextjs.org/) (App Router) |
-| Language | TypeScript (strict) |
-| Simulation | [p5.js](https://p5js.org/) via `react-p5` |
-| Styling | [Tailwind CSS 4](https://tailwindcss.com/) |
-| Typography | Fraunces (serif display) + Space Mono (data/UI) |
-| Icons | [Lucide React](https://lucide.dev/) |
-
----
-
-## Project Structure
-
+```bash
+npm run build
+npm start
 ```
+
+The default development command uses Next.js's default bundler. To run the development server with Webpack instead:
+
+```bash
+npm run dev -- --webpack
+```
+
+### Code checks
+
+```bash
+npm run lint
+npx tsc --noEmit
+npm run build
+```
+
+There is currently no automated test script in `package.json`. Browser checks and simulation/renderer verification performed during development are recorded in [the verification notes](docs/visual-upgrade-verification.md).
+
+## Using the simulation
+
+| Action | Control |
+| --- | --- |
+| Place an antibiotic disc | Click or tap inside the dish |
+| Place a disc with the keyboard | Focus the dish, aim with arrow keys, then press Enter or Space; Shift + arrows moves farther, and Escape hides the target |
+| Change mutation probability | **MUTATION**, from 0–20%, applied when susceptible cells divide |
+| Change growth probability | **GROWTH RATE**, from 0–5%, applied each tick after the division cooldown |
+| Change lifespan | **LIFESPAN**, from 100–2,000 simulation frames |
+| Set the population cap | **CAPACITY**, from 100–3,000 cells; lowering the cap limits new births rather than removing existing cells |
+| Change antibiotic zone radius | **DRUG STR.**, from 20–100 model units; applies to newly placed discs |
+| Change movement | **MOTION**, from 0.1–4×; changes cell movement, not simulation time |
+| Enable advanced mechanisms | Choose **Advanced** beside the dish |
+| Change transfer probability | **CONJUGATION**, from 0–3%, in Advanced mode |
+| Change the growth cost of resistance | **FITNESS COST**, from 1–3×, in Advanced mode |
+| Pause or resume | Use the labeled button beneath the dish |
+| Reset | Use the reset button beneath the dish to clear discs and history and start again with 50 susceptible cells; parameter settings are retained |
+| Stop at a chosen frame | Turn **Auto-stop** on and adjust **LIMIT**, from 1,000–10,000 frames |
+| Read the visual guide | Hover over, focus, or tap **Reading the dish**; press Escape or click outside to dismiss |
+
+## Reading the dish
+
+- **Green capsules:** susceptible cells.
+- **Banded rust capsules:** resistant cells. The bands provide a cue beyond color; they do not distinguish mutation from transfer.
+- **Paper discs marked AB:** antibiotic placement. Dashed boundaries show the lethal zones.
+- **Dotted outer boundaries:** the stress halos, shown in Advanced mode.
+- **Violet filaments:** recent gene transfers between living cell pairs in Advanced mode. They last about 1.5 seconds of simulation time, with up to 200 recent filaments displayed. There are no recipient rings.
+
+The observations panel shows the latest transfer frame; cumulative HGT totals are not displayed. The chart retains the latest 200 population samples, rather than the entire run. Counts are sampled every 10 simulation ticks and at auto-stop.
+
+On laptop layouts wider than 1,100 pixels, the dish adapts to the available screen height, up to a 640-pixel display size. Counts and transfer information sit beside it, while playback and the cell legend remain beneath it. Narrow screens use a scrolling layout. Reduced-motion preferences suppress decorative transitions and hold transfer highlights steady without changing the simulation rules.
+
+The website uses the 🧫 emoji as its favicon. The footer includes the linked Titerly and creator attribution with locally stored site favicons.
+
+## Model rules and limitations
+
+Simulation time targets 60 ticks per second independently of rendering. Paused or hidden tabs do not advance the culture. Short rendering stalls allow bounded catch-up; long stalls do not fast-forward the run. Probabilities and cooldowns are defined per simulation tick, not per real-world biological generation.
+
+### Mutation and inheritance
+
+Division requires a cooldown of more than 100 ticks since the cell's last division. A susceptible parent's offspring can become resistant according to the mutation setting. Mutation probabilities are intentionally exaggerated for visibility. Resistance is represented as a single inherited boolean state, without individual genes or molecular mechanisms.
+
+### Antibiotic selection
+
+Susceptible cells lose health inside fixed circular antibiotic zones. Resistant cells are fully protected in this model. The drug control changes the radius of newly placed zones; it does not model concentration, diffusion, antibiotic decay, or MIC. Cell movement is random mixing, and age-based death and the population cap are simplified turnover and crowding rules.
+
+### Advanced mechanisms
+
+Conjugation is checked every three ticks. A resistant donor can convert a susceptible neighbor less than eight model units away, according to the conjugation probability. This is a proximity-and-chance abstraction; the model does not simulate plasmid compatibility, pilus mechanics, species barriers, or multiple resistance genes.
+
+The fitness-cost multiplier divides resistant cells' reproduction probability. The stress halo extends 20 model units beyond the lethal boundary and multiplies susceptible mutation probability during division by 10. These mechanisms are teaching abstractions, not calibrated predictions of bacterial growth or stress responses.
+
+## Technology and project structure
+
+The app uses Next.js 16 with the App Router, React 19, strict TypeScript, p5.js through `react-p5`, Tailwind CSS 4, and Lucide icons. Fraunces and Space Mono provide typography. Vercel Analytics is included in the root layout; the simulation itself runs in the browser.
+
+```text
 evodish/
 ├── src/
 │   ├── app/
-│   │   ├── globals.css         # Design tokens & custom utilities
-│   │   ├── layout.tsx          # Font loading, metadata
-│   │   └── page.tsx            # Main page — state management & layout
+│   │   ├── globals.css              # Responsive layout and visual styles
+│   │   ├── icon.svg                 # Petri-dish emoji favicon
+│   │   ├── layout.tsx               # Fonts, metadata, and analytics
+│   │   └── page.tsx                 # Main interface and shared UI state
 │   ├── components/
-│   │   ├── PetriDish.tsx       # p5.js simulation canvas & all evolution logic
-│   │   ├── ControlDeck.tsx     # Parameter sliders & advanced mode toggle
-│   │   ├── StatsPanel.tsx      # Susceptible / Resistant population counters
-│   │   └── PopulationChart.tsx # SVG line chart of population over time
-│   └── types.ts                # Shared TypeScript interfaces
-├── .gemini/                    # Agent instructions & design docs (gitignored)
+│   │   ├── ControlDeck.tsx          # Parameter sliders and auto-stop controls
+│   │   ├── DishGuide.tsx            # Hover, focus, and tap visual guide
+│   │   ├── MethodsPanel.tsx         # Current setup and model documentation
+│   │   ├── PetriDish.tsx            # Simulation ticks, canvas, and interaction
+│   │   └── PopulationChart.tsx      # Rolling population history
+│   ├── content/
+│   │   └── simulationContent.ts     # Control definitions and explanations
+│   ├── lib/
+│   │   └── dishRenderer.ts          # Cached dish surfaces and cell sprites
+│   └── types.ts                    # Shared TypeScript types
+├── public/attribution/             # Favicons from the linked attribution sites
+├── docs/visual-upgrade-verification.md
 ├── package.json
+├── package-lock.json
 └── README.md
 ```
 
----
+## Possible future work
 
-## The Science
+These ideas are not implemented:
 
-This simulator models three core mechanisms of antibiotic resistance evolution:
-
-### 1. Mutation (Vertical Gene Transfer)
-During cell division, a random mutation can confer antibiotic resistance. This is controlled by the **Mutation Rate** parameter. In the real world, mutation rates for clinically relevant resistance are typically 10⁻⁶ to 10⁻⁹ per base pair per generation — we amplify this for visual clarity.
-
-### 2. Selection Pressure
-Antibiotics create a selective environment. Susceptible bacteria die in the kill zone, opening ecological niches for resistant mutants to expand. The **Drug Strength** parameter controls the size of this kill zone — analogous to antibiotic concentration (MIC).
-
-### 3. Conjugation (Horizontal Gene Transfer)
-In advanced mode, resistant bacteria can transfer plasmid-encoded resistance genes to nearby susceptible cells through direct contact (pilus formation). This mechanism is responsible for the rapid spread of multi-drug resistance in clinical settings.
-
-### Fitness Cost
-Resistance mechanisms (e.g., efflux pumps, altered ribosomes) are metabolically expensive. In advanced mode, resistant bacteria reproduce slower — controlled by the **Fitness Cost** multiplier. Without antibiotic pressure, susceptible bacteria outcompete resistant ones.
-
----
-
-## Roadmap
-
-- [ ] 🤖 **Agent Mode ("Scenario Architect")** — Describe a real-world scenario in natural language and an AI agent configures and drives the simulation
-- [ ] 📊 Exportable simulation data (CSV/JSON)
-- [ ] 🧬 Multiple resistance genes / multi-drug resistance
-- [ ] 🔬 Resource competition (nutrient gradient)
-- [ ] ⏱️ Simulation speed control / time acceleration
-
----
-
-## Author
-
-by [Olatomiwa Bifarin](https://bifarin.me)
-
----
+- Natural-language scenario configuration
+- Exportable simulation data (CSV/JSON)
+- Multiple resistance genes and antibiotics
+- Nutrient or resource competition
+- Simulation time acceleration
 
 ## License
 
-MIT
+EvoDish's original code and documentation are available under the [MIT License](LICENSE).
+Copyright © 2026 Olatomiwa Bifarin.
 
-## Dimensional specimen view
-
-The dish uses cached Canvas 2D lighting and capsule sprites: glass rim, softly lit agar,
-paper antibiotic discs, banded resistant cells, and brief birth/death transitions.
-Simulation positions and antibiotic boundaries remain two-dimensional. The methods
-panel explains the visual encoding and model limitations.
-
-Click or tap to place a disc. With the dish focused, use arrow keys to move the target
-(Shift moves farther), Enter or Space to place, and Escape to hide the target.
-Reduced-motion preferences suppress decorative transitions without changing biology.
-On narrow screens the dish appears above statistics and controls.
-
-Simulation ticks target 60 Hz independently of drawing. Short stalls allow bounded
-catch-up; long stalls and hidden tabs do not fast-forward the culture. Biological
-probabilities, distances, cooldowns, and population limits remain per-tick.
-
-The Basic / Advanced selector stays beside the specimen. Basic mode explicitly shows
-that transfer is off. In Advanced mode, subtle violet filaments follow recent transfer pairs, and
-the last-transfer readout keeps the most recent event frame visible. Up to 200 visual
-markers are retained; the cumulative HGT count includes every event. Highlights stay
-steady with reduced motion. On laptop layouts, the dish adapts to the available
-screen height (up to 640 px), with population counts and transfer information in
-the observations panel. Playback and the legend stay beneath the dish. Sliders are
-grouped by population, environment, and experiment.
+Third-party dependencies and assets retain their own licenses. In particular,
+p5.js is licensed under LGPL-2.1; EvoDish's MIT license does not replace those terms.

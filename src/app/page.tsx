@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
+import Image from "next/image";
 import { Play, Pause, RotateCcw } from "lucide-react";
 import PetriDish from "@/components/PetriDish";
 import ControlDeck from "@/components/ControlDeck";
 import PopulationChart from "@/components/PopulationChart";
 import MethodsPanel from "@/components/MethodsPanel";
+import DishGuide from "@/components/DishGuide";
 import { PopulationSnapshot, SimulationParameters } from "@/types";
 
 export default function Home() {
@@ -15,7 +17,6 @@ export default function Home() {
   const [stats, setStats] = useState({ susceptible: 0, resistant: 0 });
   const [populationHistory, setPopulationHistory] = useState<PopulationSnapshot[]>([]);
   const [simFrame, setSimFrame] = useState(0);
-  const [hgtCount, setHgtCount] = useState(0);
   const [lastTransferFrame, setLastTransferFrame] = useState<number | null>(null);
 
   // Simulation Parameters
@@ -39,7 +40,6 @@ export default function Home() {
     setResetSignal((prev) => prev + 1);
     setPopulationHistory([]);
     setSimFrame(0);
-    setHgtCount(0);
     setLastTransferFrame(null);
   };
 
@@ -61,7 +61,6 @@ export default function Home() {
   }, [isExperimentMode, stopFrame]);
 
   const onHgtUpdate = useCallback((count: number, frame: number) => {
-    setHgtCount(count);
     setLastTransferFrame(count > 0 ? frame : null);
   }, []);
 
@@ -83,7 +82,6 @@ export default function Home() {
     <div className="culture-summary" aria-label="Population summary">
       <div><span>Susceptible</span><strong>{stats.susceptible.toLocaleString()}</strong></div>
       <div><span>Resistant</span><strong>{stats.resistant.toLocaleString()}</strong></div>
-      <div><span>HGT events</span><strong>{hgtCount.toLocaleString()}</strong></div>
     </div>
   );
   const transferReadout = (
@@ -93,9 +91,6 @@ export default function Home() {
         ? "Waiting for a resistant cell to pass resistance to a neighbor."
         : <>Resistance transferred <span>at frame {lastTransferFrame.toLocaleString()}.</span></>}</p>
     </div>
-  );
-  const zoneLegend = (
-    <p className="zone-note">Dashed: lethal boundary{advancedMode ? " · Dotted: stress halo · Violet filament: recent transfer" : ""}.</p>
   );
 
   return (
@@ -213,7 +208,6 @@ export default function Home() {
           <div className="specimen-readouts">
             {populationSummary}
             {transferReadout}
-            {zoneLegend}
           </div>
         </div>
 
@@ -229,22 +223,28 @@ export default function Home() {
             <div><dt>Capacity</dt><dd>{maxPopulation.toLocaleString()}</dd></div>
             <div><dt>Status</dt><dd>{isExperimentMode && simFrame >= stopFrame ? "Complete" : paused ? "Paused" : "Running"}</dd></div>
           </dl>
-          <div className="desktop-readouts">{transferReadout}{zoneLegend}</div>
-          <p className="observation-note">{advancedMode ? "Subtle violet filaments mark recent resistance transfers between cells. Banded rust cells are resistant, whatever the source." : "Antibiotics select for resistance. Watch how the balance changes as susceptible cells disappear."}</p>
+          <div className="desktop-readouts">{transferReadout}</div>
+          <DishGuide advancedMode={advancedMode} />
         </aside>
       </div>
 
       {/* Footer */}
-      <footer className="w-full shrink-0 text-center py-2 font-mono text-[10px] uppercase tracking-wider text-black">
-        by{" "}
+      <footer className="w-full shrink-0 text-center px-3 py-2 font-mono text-[10px] font-bold text-black">
+        Brought to you by{" "}
+        <a href="https://www.titerly.com/" target="_blank" rel="noopener noreferrer"
+          className="attribution-link underline hover:text-[var(--accent-rust)]">
+          <Image src="/attribution/titerly.png" alt="" width={14} height={14} />Titerly
+        </a>
+        {" · Created by "}
         <a
-          href="https://bifarin.me"
+          href="https://www.bifarin.me/"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline font-bold hover:text-[var(--accent-rust)] transition-colors"
+          className="attribution-link underline hover:text-[var(--accent-rust)] transition-colors"
         >
+          <Image src="/attribution/olatomiwa-bifarin.jpg" alt="" width={14} height={14} />
           Olatomiwa Bifarin
-        </a>
+        </a>.
       </footer>
 
       <MethodsPanel

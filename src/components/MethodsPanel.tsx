@@ -50,8 +50,8 @@ const simulationUpdates = [
 const visualGuide = [
   "Green capsules with an axial highlight are susceptible cells. Larger rust capsules with two pale bands are resistant cells; the bands distinguish resistance without color.",
   "Paper discs marked AB show antibiotic placement. Dashed rings mark the lethal boundary; in advanced mode, a dotted outer boundary encloses the stress halo. Shading represents these fixed model regions, not simulated diffusion.",
-  "Subtle violet filaments between cells mark actual gene transfers for about 1.5 seconds. The last-transfer readout records the most recent event. Filaments follow the cells as they move; a rust cell alone does not tell you whether resistance arose by mutation or transfer. Reduced motion keeps the highlight steady.",
-  "The left and right counters track susceptible and resistant counts separately, while the HGT counter tracks cumulative transfer events.",
+  "Subtle violet filaments between cells mark actual gene transfers for about 1.5 seconds of simulation time. The last-transfer readout records the most recent event. Filaments follow living transfer pairs; a rust cell alone does not tell you whether resistance arose by mutation or transfer. Up to 200 recent filaments are shown. Reduced motion keeps the highlight steady.",
+  "The population summary tracks susceptible and resistant cells separately. Hover over, focus, or tap Reading the dish for a compact guide to boundaries, the stress halo, and transfer filaments.",
   "The chart shows recent population history only. It is a rolling window, not the entire run from frame 0 onward.",
 ];
 
@@ -293,7 +293,7 @@ const MethodsPanel: React.FC<MethodsPanelProps> = ({
                       <div className="rounded-[1.25rem] border border-black/10 bg-white/45 px-4 py-3">
                         <div className="flex items-center justify-between gap-3">
                           <h3 className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-black/55">
-                            Toggle
+                            Basic / Advanced selector
                           </h3>
                           <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--accent-rust)]">
                             {parameters.advancedMode ? "ON" : "OFF"}
