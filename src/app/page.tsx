@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from "react";
 import Image from "next/image";
-import { Play, Pause, RotateCcw } from "lucide-react";
+import { Github, Play, Pause, RotateCcw } from "lucide-react";
 import PetriDish from "@/components/PetriDish";
 import ControlDeck from "@/components/ControlDeck";
 import PopulationChart from "@/components/PopulationChart";
@@ -98,12 +98,12 @@ export default function Home() {
 
       {/* TOP HEADER + TITLE CLUSTER */}
       <header className="lab-header">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
+        <div className="flex justify-between items-center gap-3">
+          <div className="flex items-center gap-2 whitespace-nowrap">
             <div className="w-2 h-2 rounded-full bg-[var(--accent-rust)]"></div>
             <span>{paused ? "CULTURE PAUSED" : "LIVE CULTURE"}</span>
           </div>
-          <div className="flex gap-4 sm:gap-8">
+          <nav aria-label="Project links" className="flex shrink-0 items-center gap-3 sm:gap-8">
             <a
               href="https://www.youtube.com/watch?v=k-bB78I8-_s"
               target="_blank"
@@ -120,7 +120,18 @@ export default function Home() {
             >
               METHODS
             </button>
-          </div>
+            <a
+              href="https://github.com/obifarin/evodish"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub repository"
+              title="GitHub repository"
+              className="flex items-center gap-1.5 cursor-pointer opacity-60 transition-opacity hover:opacity-100 hover:underline"
+            >
+              <Github size={12} aria-hidden="true" />
+              <span className="hidden sm:inline">GitHub</span>
+            </a>
+          </nav>
         </div>
         <div className="mt-1 flex flex-col items-center">
           <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter text-black leading-none uppercase select-none">
