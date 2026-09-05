@@ -142,3 +142,28 @@ ESLint, and whitespace checks passed.
 - npm still marks react-p5 1.4.1 as deprecated. It passed these runtime checks and
   has no current npm audit finding; replacing that wrapper is a separate
   maintenance task.
+
+## Dead-code cleanup — 2026-09-05
+
+- Removed the unreferenced StatsPanel component, five unused Next.js starter SVGs,
+  an unused React import, six unused CSS variables, and permanently hidden header
+  badges. The visible Methods badges remain in use.
+- Removed the obsolete cumulative HGT counter and its callback adapter. Transfer
+  notifications now carry only the latest event frame, or null on reset.
+- Removed stored transfer endpoint coordinates and unreachable fallback paths;
+  every transfer marker already carries both living-cell references.
+- Removed unused direct p5 and @types/p5 dependencies. The actual renderer still
+  uses react-p5's p5 1.7.0 runtime and matching types. npm removed 16 packages and
+  reported zero vulnerabilities.
+- Source import traversal found no remaining unreferenced TypeScript modules.
+  ESLint, TypeScript with noUnusedLocals/noUnusedParameters, the production build,
+  and whitespace checks passed.
+- Browser checks confirmed fresh canvas loading, live growth, Advanced controls,
+  keyboard antibiotic placement, Methods, and the visual guide. Auto-stop reached
+  frame 1,000 with the latest transfer at frame 975; reset then restored 50
+  susceptible cells and cleared the transfer readout. This describes one random
+  test run, not a fixed expected population result.
+- Layout checks passed at 1280 × 720 and 1440 × 800 without page overflow. At
+  320 × 740, the header/GitHub link, dish, and open guide fit horizontally. Footer
+  images loaded and browser error/warning logs were empty. Default settings and
+  viewport were restored after verification.

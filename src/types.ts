@@ -18,13 +18,9 @@ export interface AntibioticDisc {
 }
 
 export interface ConjugationLine {
-  fromX: number;
-  fromY: number;
-  toX: number;
-  toY: number;
   framesLeft: number;
-  donor?: Bacterium;
-  recipient?: Bacterium;
+  donor: Bacterium;
+  recipient: Bacterium;
 }
 
 export interface PopulationSnapshot {

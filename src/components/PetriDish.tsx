@@ -17,7 +17,7 @@ interface PetriDishProps {
   paused: boolean;
   onStatsUpdate: (susceptible: number, resistant: number) => void;
   onFrameUpdate: (frame: number) => boolean;
-  onHgtUpdate: (count: number, frame: number) => void;
+  onHgtUpdate: (frame: number | null) => void;
   mutationRate: number;
   reproductionChance: number;
   maxPopulation: number;
@@ -74,7 +74,6 @@ const PetriDish: React.FC<PetriDishProps> = ({
   }, []);
   const containerRef = useRef<HTMLDivElement>(null);
   const simFrameRef = useRef(0);
-  const hgtTotalRef = useRef(0);
   const [cssScale, setCssScale] = useState(1);
 
   const paramsRef = useRef({
@@ -126,13 +125,12 @@ const PetriDish: React.FC<PetriDishProps> = ({
     discsRef.current = [];
     conjugationLinesRef.current = [];
     simFrameRef.current = 0;
-    hgtTotalRef.current = 0;
     elapsedRef.current = 0;
     rendererRef.current?.reset();
     cursorRef.current = null;
     setAnnouncement("Culture initialized with 50 susceptible cells; antibiotic discs cleared.");
     callbacksRef.current.onFrameUpdate(0);
-    callbacksRef.current.onHgtUpdate(0, 0);
+    callbacksRef.current.onHgtUpdate(null);
     const population: Bacterium[] = [];
     for (let i = 0; i < 50; i++) {
       let pos;
@@ -234,12 +232,7 @@ const PetriDish: React.FC<PetriDishProps> = ({
                   // 8px proximity = 64 squared distance
                   if (distX * distX + distY * distY < 64 && p5.random(1) < params.conjugationRate) {
                     toConvert.add(b);
-                    hgtTotalRef.current++;
                     newLines.push({
-                      fromX: a.pos.x,
-                      fromY: a.pos.y,
-                      toX: b.pos.x,
-                      toY: b.pos.y,
                       framesLeft: TRANSFER_HIGHLIGHT_TICKS,
                       donor: a,
                       recipient: b,
@@ -257,8 +250,8 @@ const PetriDish: React.FC<PetriDishProps> = ({
           b.lastReproduced = b.age; // reset reproduction timer for newly resistant
         }
         if (newLines.length) {
-          callbacksRef.current.onHgtUpdate(hgtTotalRef.current, simFrameRef.current);
-          // Bound visual overlays independently of the cumulative biological event count.
+          callbacksRef.current.onHgtUpdate(simFrameRef.current);
+          // Bound visual overlays without limiting biological transfers.
           conjugationLinesRef.current = [...conjugationLinesRef.current, ...newLines].slice(-200);
         }
       }

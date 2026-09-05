@@ -10,15 +10,6 @@
   --background: var(--bg-cream);
   --foreground: var(--ink-black);
 
-  /* Accents mapped to game logic */
-  --alert-red: var(--accent-rust);
-  --safe-green: var(--accent-green);
-  --sterile-blue: #4D96FF; /* Keeping a blue for antibiotics but maybe darker? */
-  
-  /* Structure */
-  --border-thin: 1px solid var(--ink-black);
-  --radius-sm: 4px;
-  --radius-lg: 999px; /* Pill shapes */
 }
 
 @theme inline {
@@ -45,7 +36,6 @@ body {
 /* A warm specimen stage, surrounded by readable laboratory controls. */
 .lab-header { padding: 16px 28px 12px; font-size: 11px; text-transform: uppercase; }
 .lab-header h1 { font-size: 48px; }
-.lab-header .pill-label { display: none; }
 .lab-workspace { display: grid; grid-template-columns: 216px minmax(0, 1fr) 216px; gap: 28px; width: 100%; max-width: 1500px; margin: 0 auto; padding: 16px 28px 28px; align-items: start; flex: 1; }
 .lab-controls, .lab-specimen, .lab-stats { min-width: 0; }
 .lab-controls { grid-column: 1; grid-row: 1; }

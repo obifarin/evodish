@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import Image from "next/image";
 import { Github, Play, Pause, RotateCcw } from "lucide-react";
 import PetriDish from "@/components/PetriDish";
@@ -59,10 +59,6 @@ export default function Home() {
     }
     return false;
   }, [isExperimentMode, stopFrame]);
-
-  const onHgtUpdate = useCallback((count: number, frame: number) => {
-    setLastTransferFrame(count > 0 ? frame : null);
-  }, []);
 
   const simulationParameters: SimulationParameters = {
     mutationRate,
@@ -137,10 +133,6 @@ export default function Home() {
           <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter text-black leading-none uppercase select-none">
             EVODISH
           </h1>
-          <div className="flex flex-wrap justify-center gap-2 mt-1">
-            <div className="pill-label bg-white/70 backdrop-blur-sm shadow-sm border-black/5">ANTIBIOTIC SIMULATION</div>
-            <div className="pill-label border-[var(--accent-rust)] text-[var(--accent-rust)] bg-[var(--bg-cream)] uppercase hidden sm:block">EVOLUTIONARY PRESSURE</div>
-          </div>
         </div>
       </header>
 
@@ -196,7 +188,7 @@ export default function Home() {
             movementSpeed={movementSpeed}
             onStatsUpdate={onStatsUpdate}
             onFrameUpdate={onFrameUpdate}
-            onHgtUpdate={onHgtUpdate}
+            onHgtUpdate={setLastTransferFrame}
             advancedMode={advancedMode}
             conjugationRate={conjugationRate}
             fitnessCostMultiplier={fitnessCostMultiplier}

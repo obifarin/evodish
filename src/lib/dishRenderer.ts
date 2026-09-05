@@ -189,10 +189,9 @@ export class DishRenderer {
     if (advanced && lines.length) {
       const alive = new Set(bacteria);
       for (const line of lines) {
-        if (line.recipient && !alive.has(line.recipient)) continue;
-        if (line.donor && !alive.has(line.donor)) continue;
-        const from = line.donor?.pos || { x: line.fromX, y: line.fromY };
-        const to = line.recipient?.pos || { x: line.toX, y: line.toY };
+        if (!alive.has(line.recipient) || !alive.has(line.donor)) continue;
+        const from = line.donor.pos;
+        const to = line.recipient.pos;
         // A restrained filament marks transfer without drawing a ring around the cell.
         ctx.globalAlpha = 0.85 * (reducedMotion ? 1 : Math.min(1, line.framesLeft / 30));
         ctx.beginPath();
