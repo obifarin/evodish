@@ -114,7 +114,7 @@ The fitness-cost multiplier divides resistant cells' reproduction probability. T
 
 ## Technology and project structure
 
-The app uses Next.js 16 with the App Router, React 19, strict TypeScript, p5.js through `react-p5`, Tailwind CSS 4, and Lucide icons. Fraunces and Space Mono provide typography. Vercel Analytics is included in the root layout; the simulation itself runs in the browser.
+The app uses Next.js 16.3.4 with the App Router, React 19.2.8, strict TypeScript, p5.js through `react-p5`, Tailwind CSS 4, and Lucide icons. Fraunces and Space Mono provide typography. Vercel Analytics is included in the root layout; the simulation itself runs in the browser.
 
 ```text
 evodish/

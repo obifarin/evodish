@@ -115,3 +115,30 @@ and updated Methods content in-browser. At 1280 × 720 there is no page overflow
 at 390 × 844 the open guide remains inside the viewport with no horizontal
 overflow. Both favicon images loaded successfully. Production build, TypeScript,
 ESLint, and whitespace checks passed.
+
+## Dependency security update — 2026-09-05
+
+- Upgraded Next.js and eslint-config-next from 16.1.6 to 16.3.4, and React/React DOM
+  from 19.2.3 to 19.2.8. Refreshed compatible React type definitions.
+- Applied compatible transitive dependency fixes without force or overrides.
+  The resulting tree includes PostCSS 8.5.23, Sharp 0.35.4, and Nanoid 3.3.18.
+- A full npm audit, including development dependencies, initially reported 13
+  vulnerable package entries. After the updates and a clean `npm ci`, it reported
+  zero vulnerabilities. This records the advisory database at verification time;
+  it is not a guarantee against future findings.
+- Production build and TypeScript checks passed after clearing stale generated
+  `.next` types from the prior Next.js version. ESLint and whitespace checks passed.
+- Browser verification with the default Turbopack dev server confirmed live cell
+  growth, pause (frame held at 2,220), reset to 50 susceptible cells, Advanced mode,
+  slider updates, keyboard antibiotic placement, the visual guide, and Methods.
+- An accelerated-growth test with auto-stop set to 1,000 completed at exactly that
+  frame, with 9 susceptible and 1,991 resistant cells and a real transfer reported
+  at frame 966. These counts describe one stochastic run, not an expected result.
+- At 1280 × 720, the full layout remained visible without page overflow. The canvas,
+  chart, attribution favicons, and antibiotic boundaries rendered, and browser
+  error/warning logs were empty.
+- Next.js generated AGENTS.md and CLAUDE.md pointing to its bundled documentation.
+  No simulation or UI source changes were required for the upgrade.
+- npm still marks react-p5 1.4.1 as deprecated. It passed these runtime checks and
+  has no current npm audit finding; replacing that wrapper is a separate
+  maintenance task.
