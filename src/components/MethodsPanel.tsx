@@ -37,20 +37,20 @@ const modelAtAGlance = [
 ];
 
 const simulationUpdates = [
-  "Every unpaused frame, the simulation advances by one tick and redraws the dish.",
+  "The frame counter measures simulation ticks, targeting 60 ticks per second while running. Rendering is separate; paused or hidden tabs do not advance the culture.",
   "Susceptible cells inside an antibiotic disc lose health. In advanced mode, the disc also has a stress halo just outside the lethal zone.",
   "Cells die if their health reaches zero or if they age past the lifespan limit.",
   "Surviving cells drift in a random direction, then get clipped back inside the dish boundary.",
   "Cells can only divide after a 100-frame cooldown. Division is probabilistic, not scheduled.",
   "When a susceptible cell divides, the offspring may become resistant based on the mutation setting. In the stress halo, that mutation chance is multiplied by 10.",
   "Advanced mode also checks nearby cells for conjugation every 3 frames, allowing resistant cells to convert susceptible neighbors by chance.",
-  "Population counts are sampled every 10 frames for the counters and chart, so the readout is slightly coarser than the visual animation.",
+  "Population counts are sampled every 10 ticks and at auto-stop, so the readout is slightly coarser than the visual animation.",
 ];
 
 const visualGuide = [
-  "Green outlined circles are susceptible cells. Rust filled circles are resistant cells.",
-  "Dashed rings mark antibiotic zones. In advanced mode, the outer faded halo marks the stress region around each disc.",
-  "Bright magenta lines mark conjugation events when resistance is transferred between nearby cells.",
+  "Green capsules with an axial highlight are susceptible cells. Larger rust capsules with two pale bands are resistant cells; the bands distinguish resistance without color.",
+  "Paper discs marked AB show antibiotic placement. Dashed rings mark the lethal boundary; in advanced mode, a dotted outer boundary encloses the stress halo. Shading represents these fixed model regions, not simulated diffusion.",
+  "Subtle violet filaments between cells mark actual gene transfers for about 1.5 seconds. The last-transfer readout records the most recent event. Filaments follow the cells as they move; a rust cell alone does not tell you whether resistance arose by mutation or transfer. Reduced motion keeps the highlight steady.",
   "The left and right counters track susceptible and resistant counts separately, while the HGT counter tracks cumulative transfer events.",
   "The chart shows recent population history only. It is a rolling window, not the entire run from frame 0 onward.",
 ];

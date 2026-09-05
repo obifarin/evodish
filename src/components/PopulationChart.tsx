@@ -29,13 +29,15 @@ const PopulationChart: React.FC<PopulationChartProps> = ({ history }) => {
   };
 
   return (
-    <div className="font-mono text-[10px] uppercase">
-      <h2 className="text-[9px] font-bold opacity-30 tracking-widest mb-2">POPULATION</h2>
+    <div className="population-chart">
+      <h2 className="eyebrow">RECENT HISTORY</h2>
       <svg
         width={width}
         height={height}
         viewBox={`0 0 ${width} ${height}`}
         className="overflow-visible"
+        role="img"
+        aria-label="Recent population history: solid green is susceptible, dashed rust is resistant."
       >
         {/* Grid lines */}
         <line
@@ -65,6 +67,7 @@ const PopulationChart: React.FC<PopulationChartProps> = ({ history }) => {
           d={toPath(h => h.resistant)}
           fill="none"
           stroke="var(--accent-rust)"
+          strokeDasharray="4 3"
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -72,14 +75,14 @@ const PopulationChart: React.FC<PopulationChartProps> = ({ history }) => {
       </svg>
 
       {/* Legend */}
-      <div className="flex gap-3 mt-1.5 text-[8px] opacity-50">
+      <div className="chart-legend">
         <div className="flex items-center gap-1">
           <div className="w-2.5 h-px bg-[var(--accent-green)]" />
-          <span>SUS</span>
+          <span>Susceptible</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-2.5 h-px bg-[var(--accent-rust)]" />
-          <span>RES</span>
+          <span>Resistant</span>
         </div>
       </div>
     </div>

@@ -3,7 +3,6 @@
 import React, { useState, useCallback } from "react";
 import { Play, Pause, RotateCcw } from "lucide-react";
 import PetriDish from "@/components/PetriDish";
-import StatsPanel from "@/components/StatsPanel";
 import ControlDeck from "@/components/ControlDeck";
 import PopulationChart from "@/components/PopulationChart";
 import MethodsPanel from "@/components/MethodsPanel";
@@ -17,6 +16,7 @@ export default function Home() {
   const [populationHistory, setPopulationHistory] = useState<PopulationSnapshot[]>([]);
   const [simFrame, setSimFrame] = useState(0);
   const [hgtCount, setHgtCount] = useState(0);
+  const [lastTransferFrame, setLastTransferFrame] = useState<number | null>(null);
 
   // Simulation Parameters
   const [mutationRate, setMutationRate] = useState(0.005);
@@ -40,6 +40,7 @@ export default function Home() {
     setPopulationHistory([]);
     setSimFrame(0);
     setHgtCount(0);
+    setLastTransferFrame(null);
   };
 
   const onStatsUpdate = useCallback((susceptible: number, resistant: number) => {
@@ -54,11 +55,14 @@ export default function Home() {
     setSimFrame(frame);
     if (isExperimentMode && frame >= stopFrame) {
       setPaused(true);
+      return true;
     }
+    return false;
   }, [isExperimentMode, stopFrame]);
 
-  const onHgtUpdate = useCallback((count: number) => {
+  const onHgtUpdate = useCallback((count: number, frame: number) => {
     setHgtCount(count);
+    setLastTransferFrame(count > 0 ? frame : null);
   }, []);
 
   const simulationParameters: SimulationParameters = {
@@ -76,14 +80,14 @@ export default function Home() {
   };
 
   return (
-    <main className="flex h-screen w-screen flex-col overflow-hidden bg-[var(--bg-cream)] text-[var(--ink-black)]">
+    <main className="lab-app flex min-h-screen flex-col bg-[var(--bg-cream)] text-[var(--ink-black)]">
 
       {/* TOP HEADER + TITLE CLUSTER */}
-      <header className="w-full shrink-0 z-30 px-4 py-2 sm:px-8 sm:py-3 font-mono text-[10px] tracking-tighter uppercase">
+      <header className="lab-header">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-[var(--accent-rust)]"></div>
-            <span>LIVE_FEED</span>
+            <span>{paused ? "CULTURE PAUSED" : "LIVE CULTURE"}</span>
           </div>
           <div className="flex gap-4 sm:gap-8">
             <a
@@ -116,10 +120,10 @@ export default function Home() {
       </header>
 
       {/* MAIN CONTENT — controls left, canvas center, stats right */}
-      <div className="flex-1 flex items-stretch w-full min-h-0 px-2 sm:px-4 gap-2 sm:gap-4 pb-2 sm:pb-4">
+      <div className="lab-workspace">
 
         {/* Left: Control Deck */}
-        <div className="shrink-0 w-36 sm:w-44 md:w-52 overflow-y-auto z-10">
+        <div className="lab-controls">
           <ControlDeck
             mutationRate={mutationRate}
             setMutationRate={setMutationRate}
@@ -134,7 +138,6 @@ export default function Home() {
             movementSpeed={movementSpeed}
             setMovementSpeed={setMovementSpeed}
             advancedMode={advancedMode}
-            setAdvancedMode={setAdvancedMode}
             conjugationRate={conjugationRate}
             setConjugationRate={setConjugationRate}
             fitnessCostMultiplier={fitnessCostMultiplier}
@@ -147,7 +150,16 @@ export default function Home() {
         </div>
 
         {/* Center: Petri Dish Canvas */}
-        <div className="relative flex flex-col items-center justify-center flex-1 min-w-0 h-full max-h-full overflow-hidden">
+        <div className="lab-specimen">
+          <div className="specimen-heading">
+            <div><span className="eyebrow">01 / THE EXPERIMENT</span><h2>Evolution, observed.</h2></div>
+            <div className="mode-selector" role="group" aria-label="Simulation mode">
+              <button aria-pressed={!advancedMode} onClick={() => setAdvancedMode(false)}>Basic</button>
+              <button aria-pressed={advancedMode} onClick={() => setAdvancedMode(true)}>Advanced</button>
+            </div>
+          </div>
+          <div className="specimen-stage">
+          <div className="specimen-caption"><span>TOP VIEW · AGAR PLATE</span><span>{paused ? "PAUSED" : "RUNNING"}</span></div>
           <PetriDish
             resetSignal={resetSignal}
             paused={paused}
@@ -165,55 +177,47 @@ export default function Home() {
             fitnessCostMultiplier={fitnessCostMultiplier}
           />
 
-          {/* Controls row: instruction + tip + play/pause + reset */}
-          <div className="flex items-center gap-3 mt-1 font-mono text-[10px] uppercase tracking-wider">
-            <p className="opacity-50 animate-pulse">Click the dish to place antibiotic</p>
-            <span className="relative group cursor-help">
-              <span className="font-bold opacity-60 border-b border-dashed border-black/40">Tip</span>
-              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-3 py-1.5 bg-black text-white text-[9px] rounded normal-case tracking-normal whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                Place multiple discs to observe evolutionary pressure
-              </span>
-            </span>
-            <span className="opacity-20">|</span>
-            <button
-              onClick={() => setPaused(!paused)}
-              className="flex items-center gap-1 opacity-60 hover:opacity-100 transition-opacity"
-              title={paused ? "Resume" : "Pause"}
-            >
-              {paused ? <Play size={12} /> : <Pause size={12} />}
-            </button>
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-1 opacity-60 hover:opacity-100 hover:text-[var(--accent-rust)] transition-all"
-              title="Reset"
-            >
-              <RotateCcw size={12} />
-            </button>
+          <div className="dish-legend" aria-label="Cell appearance legend">
+            <span><i className="cell-key" /> Susceptible</span>
+            <span><i className="cell-key resistant" /> Resistant</span>
+            <span className={advancedMode ? "transfer-enabled" : "transfer-disabled"}><i className="transfer-key" /> Transfer {advancedMode ? "on" : "off"}</span>
           </div>
+          <div className="dish-toolbar">
+            <p id="dish-help">Click or tap to place antibiotic.<br /><span>Keyboard: arrows to aim, Enter to place.</span></p>
+            <button onClick={() => setPaused(!paused)} aria-label={paused ? "Resume" : "Pause"}>
+              {paused ? <Play size={16} /> : <Pause size={16} />}
+              <span>{paused ? "Resume" : "Pause"}</span>
+            </button>
+            <button onClick={handleReset} aria-label="Reset" title="Reset culture"><RotateCcw size={16} /></button>
+          </div>
+          </div>
+          <div className="culture-summary" aria-label="Population summary">
+            <div><span>Susceptible</span><strong>{stats.susceptible.toLocaleString()}</strong></div>
+            <div><span>Resistant</span><strong>{stats.resistant.toLocaleString()}</strong></div>
+            <div><span>HGT events</span><strong>{hgtCount.toLocaleString()}</strong></div>
+          </div>
+          <div className={`event-readout ${advancedMode && lastTransferFrame !== null ? "has-transfer" : ""}`}>
+            <span className="event-label">{!advancedMode ? "BASIC MODE" : lastTransferFrame === null ? "WATCH FOR VIOLET" : "LAST TRANSFER"}</span>
+            <p>{!advancedMode ? "Gene transfer is off. Choose Advanced to enable it." : lastTransferFrame === null
+              ? "Waiting for a resistant cell to pass resistance to a neighbor."
+              : <>Resistance transferred <span>at frame {lastTransferFrame.toLocaleString()}.</span></>}</p>
+          </div>
+          <p className="zone-note">Dashed: lethal boundary{advancedMode ? " · Dotted: stress halo · Violet filament: recent transfer" : ""}.</p>
         </div>
 
         {/* Right: Stats Panels stacked */}
-        <div className="shrink-0 w-28 sm:w-36 md:w-48 flex flex-col justify-start gap-6 pt-4 sm:pt-6">
-          <StatsPanel
-            side="left"
-            susceptible={stats.susceptible}
-            resistant={stats.resistant}
-            simFrame={simFrame}
-            hgtCount={hgtCount}
-            isExperimentMode={isExperimentMode}
-            stopFrame={stopFrame}
-          />
-          <StatsPanel
-            side="right"
-            susceptible={stats.susceptible}
-            resistant={stats.resistant}
-            simFrame={simFrame}
-            hgtCount={hgtCount}
-            isExperimentMode={isExperimentMode}
-            stopFrame={stopFrame}
-          />
+        <aside className="lab-stats" aria-label="Experiment observations">
+          <span className="eyebrow">03 / OBSERVATIONS</span>
+          <h2 className="panel-title">The population</h2>
           <PopulationChart history={populationHistory} />
-        </div>
+          <dl className="run-details">
+            <div><dt>Resistance</dt><dd>{stats.susceptible + stats.resistant > 0 ? (stats.resistant / (stats.susceptible + stats.resistant) * 100).toFixed(1) : "0.0"}%</dd></div>
+            <div><dt>Frame</dt><dd>{simFrame.toLocaleString()}</dd></div>
+            <div><dt>Capacity</dt><dd>{maxPopulation.toLocaleString()}</dd></div>
+            <div><dt>Status</dt><dd>{isExperimentMode && simFrame >= stopFrame ? "Complete" : paused ? "Paused" : "Running"}</dd></div>
+          </dl>
+          <p className="observation-note">{advancedMode ? "Subtle violet filaments mark recent resistance transfers between cells. Banded rust cells are resistant, whatever the source." : "Antibiotics select for resistance. Watch how the balance changes as susceptible cells disappear."}</p>
+        </aside>
       </div>
 
       {/* Footer */}

@@ -1,11 +1,9 @@
 import React, { useState } from "react";
 import { Info } from "lucide-react";
 import {
-  ADVANCED_MODE_DESCRIPTION,
   ControlDefinition,
   ControlKey,
   EXPERIMENT_MODE_DESCRIPTION,
-  GRADIENT_DESCRIPTION,
   INITIAL_CONTROL_MESSAGE,
   advancedControlDefinitions,
   baseControlDefinitions,
@@ -27,7 +25,6 @@ interface ControlDeckProps {
   movementSpeed: number;
   setMovementSpeed: (speed: number) => void;
   advancedMode: boolean;
-  setAdvancedMode: (mode: boolean) => void;
   conjugationRate: number;
   setConjugationRate: (rate: number) => void;
   fitnessCostMultiplier: number;
@@ -52,7 +49,6 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
   movementSpeed,
   setMovementSpeed,
   advancedMode,
-  setAdvancedMode,
   conjugationRate,
   setConjugationRate,
   fitnessCostMultiplier,
@@ -105,119 +101,58 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
     return (
       <div
         key={control.label}
-        className="flex flex-col gap-1.5"
+        className="control-field"
         onMouseEnter={() => setDescription(control.shortDescription)}
         onMouseLeave={() => setDescription(INITIAL_CONTROL_MESSAGE)}
       >
         <div className="flex justify-between items-baseline border-b border-black/10 pb-1">
-          <label className="font-bold tracking-tighter text-black truncate">
+          <label htmlFor={`control-${control.key}`} className="font-bold tracking-tighter text-black truncate">
             {control.label}
           </label>
-          <span className="font-bold text-black/40 ml-1 shrink-0">
+          <span className="control-value">
             {control.formatValue(binding.value)}
           </span>
         </div>
         <input
+          id={`control-${control.key}`}
+          onFocus={() => setDescription(control.shortDescription)}
+          onBlur={() => setDescription(INITIAL_CONTROL_MESSAGE)}
           type="range"
           min={control.min}
           max={control.max}
           step={control.step}
           value={binding.value}
           onChange={(event) => binding.setValue(parseFloat(event.target.value))}
-          className="w-full h-px bg-black appearance-none cursor-pointer accent-black hover:h-1 transition-all"
+          className="control-slider"
         />
       </div>
     );
   };
 
   return (
-    <div className="h-full flex flex-col gap-5 pt-4 sm:pt-6 font-mono text-[10px] uppercase">
-      <div className="flex items-start gap-1.5 text-[9px] tracking-wider text-[var(--ink-black)] opacity-60 min-h-[3rem]">
-        <Info size={10} strokeWidth={3} className="shrink-0 mt-0.5" />
-        <span className="leading-tight">{description}</span>
-      </div>
-
-      <div className="flex flex-col gap-5">
-        {baseControlDefinitions.map(renderControl)}
-      </div>
-
-      <div className="border-t border-black/10 pt-4 mt-1">
-        <button
-          onClick={() => setAdvancedMode(!advancedMode)}
-          onMouseEnter={() => setDescription(ADVANCED_MODE_DESCRIPTION)}
-          onMouseLeave={() => setDescription(INITIAL_CONTROL_MESSAGE)}
-          className="flex items-center gap-2 w-full group"
-        >
-          <div
-            className={`relative w-7 h-3.5 rounded-full transition-colors duration-200 ${
-              advancedMode ? "bg-[var(--accent-rust)]" : "bg-black/20"
-            }`}
-          >
-            <div
-              className={`absolute top-0.5 w-2.5 h-2.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                advancedMode ? "translate-x-3.5" : "translate-x-0.5"
-              }`}
-            />
-          </div>
-          <span className="text-[9px] font-bold tracking-tight leading-tight text-left">
-            IT&apos;S MORE COMPLICATED
-          </span>
+    <div className="control-deck">
+      <span className="eyebrow">02 / CONDITIONS</span>
+      <h2 className="panel-title">Shape the culture</h2>
+      <fieldset><legend>Population</legend>
+        {baseControlDefinitions.filter(control => ["mutationRate", "reproductionChance", "maxAge", "maxPopulation"].includes(control.key)).map(renderControl)}
+      </fieldset>
+      <fieldset><legend>Environment</legend>
+        {baseControlDefinitions.filter(control => ["discRadius", "movementSpeed"].includes(control.key)).map(renderControl)}
+      </fieldset>
+      {advancedMode && <fieldset><legend>Gene transfer</legend>
+        {advancedControlDefinitions.map(renderControl)}
+        <p className="control-note">Stress halo enabled: susceptible cells outside the lethal boundary have a higher mutation chance.</p>
+      </fieldset>}
+      <fieldset><legend>Experiment</legend>
+        <button className="auto-stop-toggle" aria-pressed={isExperimentMode}
+          onClick={() => setIsExperimentMode(!isExperimentMode)}
+          onMouseEnter={() => setDescription(EXPERIMENT_MODE_DESCRIPTION)}
+          onMouseLeave={() => setDescription(INITIAL_CONTROL_MESSAGE)}>
+          <span>Auto-stop</span><span>{isExperimentMode ? "ON" : "OFF"}</span>
         </button>
-      </div>
-
-      {advancedMode && (
-        <div className="flex flex-col gap-5">
-          {advancedControlDefinitions.map(renderControl)}
-
-          <div
-            className="flex flex-col gap-1.5"
-            onMouseEnter={() => setDescription(GRADIENT_DESCRIPTION)}
-            onMouseLeave={() => setDescription(INITIAL_CONTROL_MESSAGE)}
-          >
-            <div className="flex justify-between items-baseline border-b border-black/10 pb-1">
-              <label className="font-bold tracking-tighter text-black truncate">
-                GRADIENT
-              </label>
-              <span className="font-bold text-[var(--accent-rust)] ml-1 shrink-0">
-                ON
-              </span>
-            </div>
-            <div className="text-[8px] opacity-40 leading-tight normal-case">
-              Antibiotic discs now have a lethal core and a stress halo that
-              accelerates mutation.
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="border-t border-black/10 pt-4 mt-auto">
-        <h3 className="font-bold text-black/30 mb-3 tracking-widest">
-          LAB PROTOCOL
-        </h3>
-        <div className="flex flex-col gap-4">
-          <button
-            onClick={() => setIsExperimentMode(!isExperimentMode)}
-            onMouseEnter={() => setDescription(EXPERIMENT_MODE_DESCRIPTION)}
-            onMouseLeave={() => setDescription(INITIAL_CONTROL_MESSAGE)}
-            className="flex items-center gap-2 w-full group"
-          >
-            <div
-              className={`relative w-7 h-3.5 rounded-full transition-colors duration-200 ${
-                isExperimentMode ? "bg-black" : "bg-black/20"
-              }`}
-            >
-              <div
-                className={`absolute top-0.5 w-2.5 h-2.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                  isExperimentMode ? "translate-x-3.5" : "translate-x-0.5"
-                }`}
-              />
-            </div>
-            <span className="text-[9px] font-bold tracking-tight">AUTO-STOP</span>
-          </button>
-
-          {isExperimentMode && renderControl(experimentControlDefinitions[0])}
-        </div>
-      </div>
+        {isExperimentMode && renderControl(experimentControlDefinitions[0])}
+      </fieldset>
+      <div className="control-description"><Info size={14} aria-hidden="true" /><p>{description}</p></div>
     </div>
   );
 };

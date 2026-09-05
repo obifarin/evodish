@@ -1,7 +1,11 @@
 "use client";
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { Bacterium, AntibioticDisc, ConjugationLine } from "@/types";
+import type { SketchProps } from "react-p5";
+import { DishRenderer, DISH_SIZE, AGAR_RADIUS, TRANSFER_HIGHLIGHT_TICKS } from "@/lib/dishRenderer";
+import type { Bacterium, AntibioticDisc, ConjugationLine } from "@/types";
+
+type P5 = Parameters<SketchProps["setup"]>[0];
 
 // Dynamically import Sketch to avoid SSR issues with p5
 const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
@@ -12,8 +16,8 @@ interface PetriDishProps {
   resetSignal: number;
   paused: boolean;
   onStatsUpdate: (susceptible: number, resistant: number) => void;
-  onFrameUpdate: (frame: number) => void;
-  onHgtUpdate: (count: number) => void;
+  onFrameUpdate: (frame: number) => boolean;
+  onHgtUpdate: (count: number, frame: number) => void;
   mutationRate: number;
   reproductionChance: number;
   maxPopulation: number;
@@ -26,8 +30,8 @@ interface PetriDishProps {
 }
 
 // Fixed internal canvas size — simulation always runs at this resolution
-const CANVAS_SIZE = 520;
-const DISH_RADIUS = 240;
+const CANVAS_SIZE = DISH_SIZE;
+const DISH_RADIUS = AGAR_RADIUS;
 const SPATIAL_CELL_SIZE = 16;
 const REPRODUCTION_COOLDOWN = 100; // Minimum frames between divisions
 
@@ -47,11 +51,27 @@ const PetriDish: React.FC<PetriDishProps> = ({
   conjugationRate,
   fitnessCostMultiplier,
 }) => {
-  const p5Ref = useRef<any>(null);
+  const p5Ref = useRef<P5 | null>(null);
   const bacteriaRef = useRef<Bacterium[]>([]);
   const discsRef = useRef<AntibioticDisc[]>([]);
   const conjugationLinesRef = useRef<ConjugationLine[]>([]);
-  const agarTextureRef = useRef<any>(null);
+  const rendererRef = useRef<DishRenderer | null>(null);
+  const elapsedRef = useRef(0);
+  const reducedMotionRef = useRef(false);
+  const cursorRef = useRef<{ x: number; y: number } | null>(null);
+  const keyboardRef = useRef(false);
+  const [announcement, setAnnouncement] = useState("");
+  const callbacksRef = useRef({ onFrameUpdate, onStatsUpdate, onHgtUpdate });
+  useEffect(() => {
+    callbacksRef.current = { onFrameUpdate, onStatsUpdate, onHgtUpdate };
+  }, [onFrameUpdate, onStatsUpdate, onHgtUpdate]);
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => { reducedMotionRef.current = query.matches; };
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
   const containerRef = useRef<HTMLDivElement>(null);
   const simFrameRef = useRef(0);
   const hgtTotalRef = useRef(0);
@@ -91,25 +111,28 @@ const PetriDish: React.FC<PetriDishProps> = ({
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
         const fitSize = Math.min(rect.width, rect.height);
-        setCssScale(Math.min(fitSize / CANVAS_SIZE, 1));
+        setCssScale(fitSize / CANVAS_SIZE);
       }
     };
     measure();
-    window.addEventListener("resize", measure);
-    const timer = setTimeout(measure, 100);
+    const observer = new ResizeObserver(measure);
+    if (containerRef.current) observer.observe(containerRef.current);
     return () => {
-      window.removeEventListener("resize", measure);
-      clearTimeout(timer);
+      observer.disconnect();
     };
   }, []);
 
-  const initSimulation = useCallback((p5: any) => {
+  const initSimulation = useCallback((p5: P5) => {
     discsRef.current = [];
     conjugationLinesRef.current = [];
     simFrameRef.current = 0;
     hgtTotalRef.current = 0;
-    onFrameUpdate(0);
-    onHgtUpdate(0);
+    elapsedRef.current = 0;
+    rendererRef.current?.reset();
+    cursorRef.current = null;
+    setAnnouncement("Culture initialized with 50 susceptible cells; antibiotic discs cleared.");
+    callbacksRef.current.onFrameUpdate(0);
+    callbacksRef.current.onHgtUpdate(0, 0);
     const population: Bacterium[] = [];
     for (let i = 0; i < 50; i++) {
       let pos;
@@ -127,7 +150,8 @@ const PetriDish: React.FC<PetriDishProps> = ({
       });
     }
     bacteriaRef.current = population;
-  }, [onFrameUpdate, onHgtUpdate]);
+    callbacksRef.current.onStatsUpdate(50, 0);
+  }, []);
 
   useEffect(() => {
     if (p5Ref.current) {
@@ -135,124 +159,40 @@ const PetriDish: React.FC<PetriDishProps> = ({
     }
   }, [resetSignal, initSimulation]);
 
-  const setup = (p5: any, canvasParentRef: Element) => {
+  const setup = (p5: P5, canvasParentRef: Element) => {
     p5.createCanvas(CANVAS_SIZE, CANVAS_SIZE).parent(canvasParentRef);
 
-    // Create static noise texture
-    const texSize = DISH_RADIUS * 2 + 20;
-    const gfx = p5.createGraphics(texSize, texSize);
-    gfx.translate(texSize / 2, texSize / 2);
-    gfx.background("#EBE8DD");
-    gfx.noStroke();
-
-    for (let i = 0; i < 20000; i++) {
-      const r = DISH_RADIUS * Math.sqrt(Math.random());
-      const theta = Math.random() * 2 * Math.PI;
-      const x = r * Math.cos(theta);
-      const y = r * Math.sin(theta);
-      gfx.fill(0, 0, 0, 10);
-      gfx.circle(x, y, 1.5);
-    }
-    agarTextureRef.current = gfx;
+    p5.pixelDensity(Math.min(window.devicePixelRatio || 1, 2));
+    p5.frameRate(60);
+    rendererRef.current = new DishRenderer();
 
     p5Ref.current = p5;
     initSimulation(p5);
   };
 
-  const mousePressed = (p5: any) => {
-    const cx = p5.mouseX - CANVAS_SIZE / 2;
-    const cy = p5.mouseY - CANVAS_SIZE / 2;
-
-    if (cx * cx + cy * cy < DISH_RADIUS * DISH_RADIUS) {
-      discsRef.current.push({
-        pos: p5.createVector(cx, cy),
-        radius: paramsRef.current.discRadius,
-      });
-    }
+  const placeDisc = (x: number, y: number) => {
+    const p5 = p5Ref.current;
+    if (!p5 || x * x + y * y >= DISH_RADIUS * DISH_RADIUS) return;
+    discsRef.current.push({ pos: p5.createVector(x, y), radius: paramsRef.current.discRadius });
+    setAnnouncement(`Antibiotic disc ${discsRef.current.length} placed at ${Math.round(x)}, ${Math.round(y)} relative to dish center.`);
   };
 
-  const draw = (p5: any) => {
-    p5.clear();
-    p5.background("#EBE8DD");
+  const pointerPosition = (event: React.PointerEvent<HTMLDivElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    return { x: (event.clientX - bounds.left) * CANVAS_SIZE / bounds.width - CANVAS_SIZE / 2,
+      y: (event.clientY - bounds.top) * CANVAS_SIZE / bounds.height - CANVAS_SIZE / 2 };
+  };
 
-    p5.push();
-    p5.translate(CANVAS_SIZE / 2, CANVAS_SIZE / 2);
-
-    // Dish body
-    if (agarTextureRef.current) {
-      p5.imageMode(p5.CENTER);
-      p5.image(agarTextureRef.current, 0, 0);
-    }
-
-    // Border
-    p5.noFill();
-    p5.stroke("#1A1A1A");
-    p5.strokeWeight(1);
-    p5.circle(0, 0, DISH_RADIUS * 2);
-
+  // Biological probabilities and cooldowns remain per-tick. Drawing never consumes RNG.
+  /* eslint-disable react-hooks/immutability -- This imperative tick mutates objects owned exclusively by simulation refs, never React state or props. */
+  const tick = (p5: P5) => {
     const params = paramsRef.current;
     const discs = discsRef.current;
-
-    // ── Draw Antibiotic Discs ──
-    for (const disc of discs) {
-      if (params.advancedMode) {
-        const haloExtra = 20;
-        const outerRadius = disc.radius + haloExtra;
-        const ctx = p5.drawingContext as CanvasRenderingContext2D;
-        ctx.save();
-        const grad = ctx.createRadialGradient(
-          disc.pos.x, disc.pos.y, disc.radius,
-          disc.pos.x, disc.pos.y, outerRadius
-        );
-        grad.addColorStop(0, "rgba(26, 26, 26, 0.15)");
-        grad.addColorStop(1, "rgba(26, 26, 26, 0)");
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(disc.pos.x, disc.pos.y, outerRadius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-        p5.fill(26, 26, 26, 30);
-        p5.stroke("#1A1A1A");
-        p5.strokeWeight(1);
-        p5.drawingContext.setLineDash([5, 5]);
-        p5.circle(disc.pos.x, disc.pos.y, disc.radius * 2);
-        p5.drawingContext.setLineDash([]);
-        p5.noFill();
-        p5.stroke(26, 26, 26, 40);
-        p5.strokeWeight(0.5);
-        p5.drawingContext.setLineDash([3, 4]);
-        p5.circle(disc.pos.x, disc.pos.y, outerRadius * 2);
-        p5.drawingContext.setLineDash([]);
-      } else {
-        p5.fill(26, 26, 26, 30);
-        p5.stroke("#1A1A1A");
-        p5.strokeWeight(1);
-        p5.drawingContext.setLineDash([5, 5]);
-        p5.circle(disc.pos.x, disc.pos.y, disc.radius * 2);
-        p5.drawingContext.setLineDash([]);
-      }
-    }
-
     const bacteria = bacteriaRef.current;
-
-    // ── Draw bacteria (always, even when paused) ──
-    for (const b of bacteria) {
-      if (b.isResistant) {
-        p5.fill("#D16B4D");
-        p5.noStroke();
-        p5.circle(b.pos.x, b.pos.y, 10);
-      } else {
-        p5.noFill();
-        p5.stroke("#2F4B3F");
-        p5.strokeWeight(2);
-        p5.circle(b.pos.x, b.pos.y, 6);
-      }
-    }
-
     // ── Skip simulation updates when paused ──
     if (!params.paused) {
       simFrameRef.current++;
-      onFrameUpdate(simFrameRef.current);
+      const shouldStop = callbacksRef.current.onFrameUpdate(simFrameRef.current);
 
       // ── Spatial Hash Grid (for conjugation proximity checks) ──
       let spatialHash: Record<string, Bacterium[]> | null = null;
@@ -295,13 +235,14 @@ const PetriDish: React.FC<PetriDishProps> = ({
                   if (distX * distX + distY * distY < 64 && p5.random(1) < params.conjugationRate) {
                     toConvert.add(b);
                     hgtTotalRef.current++;
-                    onHgtUpdate(hgtTotalRef.current);
                     newLines.push({
                       fromX: a.pos.x,
                       fromY: a.pos.y,
                       toX: b.pos.x,
                       toY: b.pos.y,
-                      framesLeft: 24,
+                      framesLeft: TRANSFER_HIGHLIGHT_TICKS,
+                      donor: a,
+                      recipient: b,
                     });
                   }
                 }
@@ -315,7 +256,11 @@ const PetriDish: React.FC<PetriDishProps> = ({
           b.isResistant = true;
           b.lastReproduced = b.age; // reset reproduction timer for newly resistant
         }
-        conjugationLinesRef.current.push(...newLines);
+        if (newLines.length) {
+          callbacksRef.current.onHgtUpdate(hgtTotalRef.current, simFrameRef.current);
+          // Bound visual overlays independently of the cumulative biological event count.
+          conjugationLinesRef.current = [...conjugationLinesRef.current, ...newLines].slice(-200);
+        }
       }
 
       // ── Main Simulation Loop ──
@@ -417,54 +362,88 @@ const PetriDish: React.FC<PetriDishProps> = ({
           }
 
           survivors.push(b);
+        } else {
+          rendererRef.current?.recordDeath(b, simFrameRef.current);
         }
       }
 
       bacteriaRef.current = [...survivors, ...newBacteria];
 
-      // ── Draw Conjugation Lines (pilus visual) — drawn ON TOP of bacteria ──
-      if (params.advancedMode) {
-        const lines = conjugationLinesRef.current;
-        for (let i = lines.length - 1; i >= 0; i--) {
-          const line = lines[i];
-          const t = line.framesLeft / 24; // normalized 0→1
-          // Bright magenta pilus line for high contrast
-          p5.stroke(255, 60, 172, t * 255);
-          p5.strokeWeight(2.5);
-          p5.line(line.fromX, line.fromY, line.toX, line.toY);
-          // Dot at each end for emphasis
-          p5.noStroke();
-          p5.fill(255, 60, 172, t * 240);
-          p5.circle(line.fromX, line.fromY, 5);
-          p5.circle(line.toX, line.toY, 5);
-          line.framesLeft--;
-          if (line.framesLeft <= 0) {
-            lines.splice(i, 1);
-          }
-        }
-      }
+      for (const line of conjugationLinesRef.current) line.framesLeft--;
+      conjugationLinesRef.current = conjugationLinesRef.current.filter(line => line.framesLeft > 0);
 
-      if (simFrameRef.current % 10 === 0) {
+      if (simFrameRef.current % 10 === 0 || shouldStop) {
         const susceptible = bacteriaRef.current.filter(b => !b.isResistant).length;
         const resistant = bacteriaRef.current.length - susceptible;
-        onStatsUpdate(susceptible, resistant);
+        callbacksRef.current.onStatsUpdate(susceptible, resistant);
       }
+      if (shouldStop) paramsRef.current.paused = true;
     } // end if (!params.paused)
+  };
 
-    p5.pop();
+  /* eslint-enable react-hooks/immutability */
+
+  const draw = (p5: P5) => {
+    // Catch up short rendering stalls, but never fast-forward time spent in a hidden tab.
+    if (paramsRef.current.paused || document.hidden || p5.deltaTime > 250) elapsedRef.current = 0;
+    else {
+      elapsedRef.current += Math.min(p5.deltaTime, 100);
+      const step = 1000 / 60;
+      while (elapsedRef.current >= step && !paramsRef.current.paused) {
+        tick(p5);
+        elapsedRef.current -= step;
+      }
+    }
+    rendererRef.current?.render(p5.drawingContext as CanvasRenderingContext2D,
+      bacteriaRef.current, discsRef.current, conjugationLinesRef.current, simFrameRef.current,
+      paramsRef.current.advancedMode, reducedMotionRef.current, cursorRef.current, paramsRef.current.discRadius);
   };
 
   return (
-    <div ref={containerRef} className="w-full h-full flex items-center justify-center overflow-hidden">
-      <div style={{
-        transform: `scale(${cssScale})`,
-        transformOrigin: "center center",
-        width: CANVAS_SIZE,
-        height: CANVAS_SIZE,
-        flexShrink: 0
-      }}>
-        <Sketch setup={setup} draw={draw} mousePressed={mousePressed} />
+    <div ref={containerRef} className="dish-container">
+      <div className="dish-interaction" role="button" tabIndex={0}
+        aria-label="Petri dish. Arrow keys move the placement target; Enter or Space places antibiotic."
+        aria-describedby="dish-help"
+        onFocus={() => { keyboardRef.current = true; cursorRef.current = { x: 0, y: 0 }; }}
+        onBlur={() => { keyboardRef.current = false; cursorRef.current = null; }}
+        onKeyDown={event => {
+          if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) {
+            event.preventDefault();
+            const cursor = cursorRef.current || { x: 0, y: 0 };
+            const step = event.shiftKey ? 25 : 10;
+            const x = cursor.x + (event.key === "ArrowRight" ? step : event.key === "ArrowLeft" ? -step : 0);
+            const y = cursor.y + (event.key === "ArrowDown" ? step : event.key === "ArrowUp" ? -step : 0);
+            if (x * x + y * y < DISH_RADIUS * DISH_RADIUS) {
+              cursorRef.current = { x, y };
+              setAnnouncement(`Placement target: ${x}, ${y} relative to dish center.`);
+            }
+            keyboardRef.current = true;
+          } else if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            if (!event.repeat) { const cursor = cursorRef.current || { x: 0, y: 0 }; placeDisc(cursor.x, cursor.y); }
+          } else if (event.key === "Escape") cursorRef.current = null;
+        }}
+        onPointerMove={event => {
+          if (event.pointerType === "touch") return;
+          keyboardRef.current = false;
+          const point = pointerPosition(event);
+          cursorRef.current = point.x ** 2 + point.y ** 2 < DISH_RADIUS ** 2 ? point : null;
+        }}
+        onPointerLeave={() => { if (!keyboardRef.current) cursorRef.current = null; }}
+        onClick={event => {
+          // Pointer coordinates use the displayed bounds, including responsive scaling.
+          const bounds = event.currentTarget.getBoundingClientRect();
+          if (event.detail === 0) { const point = cursorRef.current || { x: 0, y: 0 }; placeDisc(point.x, point.y); return; }
+          const point = { x: (event.clientX - bounds.left) * CANVAS_SIZE / bounds.width - 260,
+            y: (event.clientY - bounds.top) * CANVAS_SIZE / bounds.height - 260 };
+          cursorRef.current = point.x ** 2 + point.y ** 2 < DISH_RADIUS ** 2 ? point : null;
+          placeDisc(point.x, point.y);
+        }}
+        style={{ transform: `scale(${cssScale})`, transformOrigin: "center center",
+          width: CANVAS_SIZE, height: CANVAS_SIZE, flexShrink: 0 }}>
+        <div aria-hidden="true"><Sketch setup={setup} draw={draw} /></div>
       </div>
+      <span className="sr-only" role="status">{announcement}</span>
     </div>
   );
 };

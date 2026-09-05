@@ -22,7 +22,7 @@ EvoDish simulates a bacterial population in a petri dish where you control evolu
 
 Toggle advanced mode to unlock more biologically realistic mechanics:
 
-- **Horizontal Gene Transfer (Conjugation):** Resistant bacteria can pass resistance genes to nearby susceptible cells via pilus — visualized as bright magenta connection lines
+- **Horizontal Gene Transfer (Conjugation):** Resistant bacteria can pass resistance genes to nearby susceptible cells via pilus — visualized as a subtle violet filament between the cells lasting about 1.5 seconds
 - **Fitness Cost:** Resistance comes at a metabolic cost — resistant bacteria reproduce slower than wild type
 - **Gradient Kill Zones:** Antibiotic discs have a lethal inner core and a sub-lethal stress halo that accelerates mutation rate by 10×
 
@@ -58,7 +58,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | **Set population limit** | Drag the CAPACITY slider (100–3000) |
 | **Adjust drug strength** | Drag the DRUG STR. slider (kill zone radius) |
 | **Change bacterial speed** | Drag the MOTION slider |
-| **Toggle advanced mode** | Click the "IT'S MORE COMPLICATED" switch |
+| **Toggle advanced mode** | Choose **Advanced** beside the dish |
 | **Pause / Resume** | Click the ⏸ / ▶ button below the dish |
 | **Reset simulation** | Click the ⟲ button below the dish |
 
@@ -136,3 +136,26 @@ by [Olatomiwa Bifarin](https://bifarin.me)
 ## License
 
 MIT
+
+## Dimensional specimen view
+
+The dish uses cached Canvas 2D lighting and capsule sprites: glass rim, softly lit agar,
+paper antibiotic discs, banded resistant cells, and brief birth/death transitions.
+Simulation positions and antibiotic boundaries remain two-dimensional. The methods
+panel explains the visual encoding and model limitations.
+
+Click or tap to place a disc. With the dish focused, use arrow keys to move the target
+(Shift moves farther), Enter or Space to place, and Escape to hide the target.
+Reduced-motion preferences suppress decorative transitions without changing biology.
+On narrow screens the dish appears above statistics and controls.
+
+Simulation ticks target 60 Hz independently of drawing. Short stalls allow bounded
+catch-up; long stalls and hidden tabs do not fast-forward the culture. Biological
+probabilities, distances, cooldowns, and population limits remain per-tick.
+
+The Basic / Advanced selector stays beside the specimen. Basic mode explicitly shows
+that transfer is off. In Advanced mode, subtle violet filaments follow recent transfer pairs, and
+the last-transfer readout keeps the most recent event frame visible. Up to 200 visual
+markers are retained; the cumulative HGT count includes every event. Highlights stay
+steady with reduced motion. Population counts, playback, and the legend are grouped
+with the dish, while sliders are grouped by population, environment, and experiment.
