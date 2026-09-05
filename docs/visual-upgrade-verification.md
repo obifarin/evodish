@@ -81,3 +81,21 @@ responsive upscaling of the unchanged 520-unit simulation. Verified a 640 px can
 in-browser with no horizontal overflow, live HGT events, and no console errors.
 TypeScript, ESLint, and whitespace checks passed. The larger specimen allows vertical
 page scrolling instead of imposing a viewport-height size limit.
+
+## Laptop fit and clearer filaments
+
+Increased filament width to 1.8 logical pixels and opacity to 85%, retaining the
+final fade and omitting recipient rings. Desktop layouts now fit the viewport
+height, with population counts and transfer information beside the dish. The dish
+keeps its 640 px maximum and scales down only to the available width or height.
+
+Browser checks with Advanced mode and auto-stop enabled:
+- 1280 × 720: 500 px canvas; no page or panel scrolling, including the longest
+  focused control description.
+- 1440 × 800: 580 px canvas; complete dish, playback, controls, and observations
+  visible without scrolling.
+- 1512 × 900: full 640 px canvas; no page overflow.
+- 390 × 844: responsive stacked layout, one visible population summary, and no
+  horizontal overflow. Narrow screens retain normal vertical scrolling.
+
+ESLint, TypeScript, the optimized production build, and whitespace checks passed.

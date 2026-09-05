@@ -67,7 +67,7 @@ body {
 .dish-legend > span { display: inline-flex; align-items: center; gap: 6px; }
 .cell-key { display: inline-block; width: 14px; height: 7px; border-radius: 5px; border: 1px solid #294c3b; background: linear-gradient(#a5b79a, #2f4b3f); transform: rotate(-25deg); }
 .cell-key.resistant { width: 16px; height: 8px; border-color: #88442f; background: linear-gradient(90deg, transparent 28%, #fff2dc 28% 36%, transparent 36% 62%, #fff2dc 62% 70%, transparent 70%), linear-gradient(#ecb393, #a54c33); }
-.transfer-key { width: 14px; height: 7px; border-top: 1.2px solid #80509c; border-radius: 50%; }
+.transfer-key { width: 14px; height: 7px; border-top: 1.8px solid #79449f; border-radius: 50%; }
 .transfer-enabled { color: #642b99; font-weight: 700; }
 .transfer-disabled .transfer-key { border-color: #677160; border-style: dashed; }
 .dish-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; border-top: 1px solid #75846440; padding-top: 10px; }
@@ -157,4 +157,58 @@ button, a, input { touch-action: manipulation; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* Fit the specimen to the available laptop height before reducing its diameter. */
+.desktop-readouts { display: none; }
+@media (min-width: 1101px) {
+  .lab-app { height: 100dvh; min-height: 0; }
+  .lab-header { position: relative; flex: none; height: 46px; padding: 12px 24px; }
+  .lab-header > div:nth-child(2) { position: absolute; top: 5px; left: 50%; transform: translateX(-50%); margin: 0; }
+  .lab-header h1 { font-size: 34px; }
+  .lab-workspace { min-height: 0; grid-template-rows: minmax(0, 1fr); padding: 6px 24px 8px; gap: 24px; }
+  .lab-specimen { height: 100%; min-height: 0; }
+  .specimen-heading { margin-bottom: 6px; min-height: 38px; flex-shrink: 0; }
+  .specimen-heading .eyebrow { display: none; }
+  .specimen-heading h2 { font-size: 25px; margin: 0; }
+  .mode-selector button { padding: 7px 12px; }
+  .specimen-stage { flex: 1; min-height: 0; padding: 6px 10px; }
+  .specimen-caption { flex-shrink: 0; font-size: 9px; padding-bottom: 2px; }
+  .dish-container { flex: 1; min-height: 0; max-height: 640px; aspect-ratio: auto; }
+  .dish-legend { flex-shrink: 0; margin: 3px 0 5px; font-size: 10px; }
+  .dish-toolbar { flex-shrink: 0; padding-top: 5px; }
+  .dish-toolbar button { height: 34px; min-width: 34px; }
+  .dish-toolbar p { line-height: 1.4; }
+  .specimen-readouts { display: none; }
+  .desktop-readouts { display: block; }
+  .lab-controls, .lab-stats { min-height: 0; max-height: 100%; overflow-y: auto; scrollbar-width: thin; }
+  .panel-title { font-size: 22px; margin: 4px 0 12px; }
+  .control-deck fieldset { margin-top: 10px; }
+  .control-field { margin-top: 4px; gap: 0; }
+  .control-field > div { padding-bottom: 1px; }
+  .control-slider { height: 18px; }
+  .control-note, .control-description { line-height: 1.4; margin-top: 7px; font-size: 10px; }
+  .control-description { min-height: 0; }
+  .auto-stop-toggle { margin-top: 4px; padding: 5px 0; }
+  .culture-summary { grid-template-columns: 1fr 1fr; gap: 6px; padding: 6px 0 10px; }
+  .culture-summary > div { padding-left: 8px; }
+  .culture-summary span { font-size: 10px; }
+  .culture-summary strong { font-size: 26px; }
+  .culture-summary > div:last-child { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: space-between; border-left: 0; border-top: 1px solid #c7cdbb; padding: 5px 0 0; }
+  .culture-summary > div:last-child strong { font-size: 22px; }
+  .population-chart { margin: 14px 0; }
+  .population-chart svg { margin-top: 8px; }
+  .run-details { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; margin-top: 12px; }
+  .run-details > div { flex-direction: column; gap: 2px; padding: 7px 0; font-size: 11px; }
+  .event-readout { flex-direction: column; align-items: flex-start; gap: 4px; min-height: 0; padding: 12px 0 8px; }
+  .event-readout p { font-size: 10px; line-height: 1.5; }
+  .zone-note { font-size: 10px; }
+  .observation-note { margin-top: 10px; font-size: 10px; line-height: 1.6; }
+  .lab-app > footer { padding-block: 4px; }
+}
+@media (min-width: 1101px) and (max-height: 760px) {
+  .control-deck .panel-title { margin-bottom: 6px; }
+  .control-deck fieldset { margin-top: 4px; }
+  .control-field { margin-top: 3px; }
+  .control-note { margin-top: 5px; }
 }

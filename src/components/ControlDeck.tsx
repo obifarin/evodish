@@ -141,7 +141,7 @@ const ControlDeck: React.FC<ControlDeckProps> = ({
       </fieldset>
       {advancedMode && <fieldset><legend>Gene transfer</legend>
         {advancedControlDefinitions.map(renderControl)}
-        <p className="control-note">Stress halo enabled: susceptible cells outside the lethal boundary have a higher mutation chance.</p>
+        <p className="control-note">Stress halo raises susceptible mutation chance 10×.</p>
       </fieldset>}
       <fieldset><legend>Experiment</legend>
         <button className="auto-stop-toggle" aria-pressed={isExperimentMode}

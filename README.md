@@ -157,5 +157,7 @@ The Basic / Advanced selector stays beside the specimen. Basic mode explicitly s
 that transfer is off. In Advanced mode, subtle violet filaments follow recent transfer pairs, and
 the last-transfer readout keeps the most recent event frame visible. Up to 200 visual
 markers are retained; the cumulative HGT count includes every event. Highlights stay
-steady with reduced motion. Population counts, playback, and the legend are grouped
-with the dish, while sliders are grouped by population, environment, and experiment.
+steady with reduced motion. On laptop layouts, the dish adapts to the available
+screen height (up to 640 px), with population counts and transfer information in
+the observations panel. Playback and the legend stay beneath the dish. Sliders are
+grouped by population, environment, and experiment.

@@ -79,6 +79,25 @@ export default function Home() {
     stopFrame,
   };
 
+  const populationSummary = (
+    <div className="culture-summary" aria-label="Population summary">
+      <div><span>Susceptible</span><strong>{stats.susceptible.toLocaleString()}</strong></div>
+      <div><span>Resistant</span><strong>{stats.resistant.toLocaleString()}</strong></div>
+      <div><span>HGT events</span><strong>{hgtCount.toLocaleString()}</strong></div>
+    </div>
+  );
+  const transferReadout = (
+    <div className={`event-readout ${advancedMode && lastTransferFrame !== null ? "has-transfer" : ""}`}>
+      <span className="event-label">{!advancedMode ? "BASIC MODE" : lastTransferFrame === null ? "WATCH FOR VIOLET" : "LAST TRANSFER"}</span>
+      <p>{!advancedMode ? "Gene transfer is off. Choose Advanced to enable it." : lastTransferFrame === null
+        ? "Waiting for a resistant cell to pass resistance to a neighbor."
+        : <>Resistance transferred <span>at frame {lastTransferFrame.toLocaleString()}.</span></>}</p>
+    </div>
+  );
+  const zoneLegend = (
+    <p className="zone-note">Dashed: lethal boundary{advancedMode ? " · Dotted: stress halo · Violet filament: recent transfer" : ""}.</p>
+  );
+
   return (
     <main className="lab-app flex min-h-screen flex-col bg-[var(--bg-cream)] text-[var(--ink-black)]">
 
@@ -191,24 +210,18 @@ export default function Home() {
             <button onClick={handleReset} aria-label="Reset" title="Reset culture"><RotateCcw size={16} /></button>
           </div>
           </div>
-          <div className="culture-summary" aria-label="Population summary">
-            <div><span>Susceptible</span><strong>{stats.susceptible.toLocaleString()}</strong></div>
-            <div><span>Resistant</span><strong>{stats.resistant.toLocaleString()}</strong></div>
-            <div><span>HGT events</span><strong>{hgtCount.toLocaleString()}</strong></div>
+          <div className="specimen-readouts">
+            {populationSummary}
+            {transferReadout}
+            {zoneLegend}
           </div>
-          <div className={`event-readout ${advancedMode && lastTransferFrame !== null ? "has-transfer" : ""}`}>
-            <span className="event-label">{!advancedMode ? "BASIC MODE" : lastTransferFrame === null ? "WATCH FOR VIOLET" : "LAST TRANSFER"}</span>
-            <p>{!advancedMode ? "Gene transfer is off. Choose Advanced to enable it." : lastTransferFrame === null
-              ? "Waiting for a resistant cell to pass resistance to a neighbor."
-              : <>Resistance transferred <span>at frame {lastTransferFrame.toLocaleString()}.</span></>}</p>
-          </div>
-          <p className="zone-note">Dashed: lethal boundary{advancedMode ? " · Dotted: stress halo · Violet filament: recent transfer" : ""}.</p>
         </div>
 
         {/* Right: Stats Panels stacked */}
         <aside className="lab-stats" aria-label="Experiment observations">
           <span className="eyebrow">03 / OBSERVATIONS</span>
           <h2 className="panel-title">The population</h2>
+          <div className="desktop-readouts">{populationSummary}</div>
           <PopulationChart history={populationHistory} />
           <dl className="run-details">
             <div><dt>Resistance</dt><dd>{stats.susceptible + stats.resistant > 0 ? (stats.resistant / (stats.susceptible + stats.resistant) * 100).toFixed(1) : "0.0"}%</dd></div>
@@ -216,6 +229,7 @@ export default function Home() {
             <div><dt>Capacity</dt><dd>{maxPopulation.toLocaleString()}</dd></div>
             <div><dt>Status</dt><dd>{isExperimentMode && simFrame >= stopFrame ? "Complete" : paused ? "Paused" : "Running"}</dd></div>
           </dl>
+          <div className="desktop-readouts">{transferReadout}{zoneLegend}</div>
           <p className="observation-note">{advancedMode ? "Subtle violet filaments mark recent resistance transfers between cells. Banded rust cells are resistant, whatever the source." : "Antibiotics select for resistance. Watch how the balance changes as susceptible cells disappear."}</p>
         </aside>
       </div>

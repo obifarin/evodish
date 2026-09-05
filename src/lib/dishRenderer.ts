@@ -194,12 +194,12 @@ export class DishRenderer {
         const from = line.donor?.pos || { x: line.fromX, y: line.fromY };
         const to = line.recipient?.pos || { x: line.toX, y: line.toY };
         // A restrained filament marks transfer without drawing a ring around the cell.
-        ctx.globalAlpha = 0.65 * (reducedMotion ? 1 : Math.min(1, line.framesLeft / 30));
+        ctx.globalAlpha = 0.85 * (reducedMotion ? 1 : Math.min(1, line.framesLeft / 30));
         ctx.beginPath();
         ctx.moveTo(from.x, from.y);
         ctx.quadraticCurveTo((from.x + to.x) / 2 + 3, (from.y + to.y) / 2 - 5, to.x, to.y);
-        ctx.strokeStyle = "#80509c";
-        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = "#79449f";
+        ctx.lineWidth = 1.8;
         ctx.lineCap = "round";
         ctx.stroke();
       }
